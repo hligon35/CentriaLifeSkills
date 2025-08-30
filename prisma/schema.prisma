@@ -48,6 +48,7 @@ model Post {
   authorId  String
   title     String
   body      String   // can be markdown; sanitize on render
+  imageUrl  String?
   createdAt DateTime @default(now())
   comments  Comment[]
   likes     PostLike[]

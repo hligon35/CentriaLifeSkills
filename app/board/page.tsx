@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 
-type Post = { id: string; title: string; body: string; createdAt: string; comments: { id: string; body: string; createdAt: string }[] }
+type Post = { id: string; title: string; body: string; imageUrl?: string; createdAt: string; comments: { id: string; body: string; createdAt: string }[] }
 
 export default function BoardPage() {
   const [posts, setPosts] = useState<Post[]>([])
@@ -39,6 +39,11 @@ export default function BoardPage() {
           <div key={p.id} className="rounded border bg-white p-4">
             <div className="font-medium">{p.title}</div>
             <div className="text-sm text-gray-700 whitespace-pre-wrap">{p.body}</div>
+            {p.imageUrl && (
+              <div className="mt-3">
+                <img src={p.imageUrl} alt="Post image" className="max-h-80 w-full rounded object-cover" />
+              </div>
+            )}
             <div className="mt-2 text-xs text-gray-500">{formatDistanceToNow(new Date(p.createdAt), { addSuffix: true })}</div>
             <div className="mt-3 border-t pt-3 space-y-2">
               {p.comments.map(c => (

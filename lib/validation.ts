@@ -22,7 +22,8 @@ export const MessageCreateSchema = z.object({
 
 export const PostCreateSchema = z.object({
   title: z.string().min(1).max(200),
-  body: z.string().max(20000)
+  body: z.string().max(20000),
+  imageUrl: z.string().url().optional()
 })
 
 export const CommentCreateSchema = z.object({

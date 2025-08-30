@@ -9,6 +9,7 @@ type Post = {
   createdAt: string
   comments: { id: string }[]
   likes: { userId: string }[]
+  imageUrl?: string
 }
 
 export default function Home() {
@@ -19,6 +20,7 @@ export default function Home() {
   const [body, setBody] = useState('')
   const [creating, setCreating] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [imageUrl, setImageUrl] = useState('')
 
   useEffect(() => { refresh() }, [])
 
@@ -66,7 +68,7 @@ export default function Home() {
       const res = await fetch('/api/board', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), body: body.trim() })
+  body: JSON.stringify({ title: title.trim(), body: body.trim(), imageUrl: imageUrl.trim() || undefined })
       })
       if (res.ok) {
         const p = await res.json()
@@ -74,6 +76,7 @@ export default function Home() {
         setPosts(prev => [{ ...p, comments: [], likes: [] }, ...prev])
         setTitle('')
         setBody('')
+  setImageUrl('')
       }
     } finally {
       setCreating(false)
@@ -105,6 +108,12 @@ export default function Home() {
           value={body}
           onChange={e => setBody(e.target.value)}
         />
+        <input
+          className="mb-2 w-full rounded border px-3 py-2"
+          placeholder="Optional image URL (https://...)"
+          value={imageUrl}
+          onChange={e => setImageUrl(e.target.value)}
+        />
         <button
           onClick={createPost}
           disabled={creating}
@@ -112,7 +121,7 @@ export default function Home() {
         >
           {creating ? 'Posting…' : 'Post'}
         </button>
-      </div>
+  </div>
 
       <div className="space-y-4">
         {loading && (
@@ -136,6 +145,11 @@ export default function Home() {
               <span className="text-xs text-gray-500">{formatDistanceToNow(new Date(p.createdAt), { addSuffix: true })}</span>
             </div>
             <div className="mt-1 whitespace-pre-wrap text-sm text-gray-800">{p.body}</div>
+            {p.imageUrl && (
+              <div className="mt-3">
+                <img src={p.imageUrl} alt="Post image" className="max-h-80 w-full rounded object-cover" />
+              </div>
+            )}
             {/* If you support images in body, sanitize before render. */}
             <div className="mt-3 flex items-center gap-4 text-sm">
               <button aria-label="Toggle like" disabled={liking === p.id} onClick={() => toggleLike(p.id)} className="rounded border px-3 py-1">👍 Like ({p.likes?.length || 0})</button>

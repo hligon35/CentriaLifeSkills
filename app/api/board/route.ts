@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
   const json = await req.json()
   const parsed = PostCreateSchema.safeParse(json)
   if (!parsed.success) return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
-  const p = await prisma.post.create({ data: { authorId: user.sub, title: sanitize(parsed.data.title), body: sanitize(parsed.data.body) } })
+  const imageUrl = parsed.data.imageUrl ? String(parsed.data.imageUrl) : undefined
+  const p = await prisma.post.create({ data: { authorId: user.sub, title: sanitize(parsed.data.title), body: sanitize(parsed.data.body), imageUrl } })
   return NextResponse.json(p, { status: 201 })
 }

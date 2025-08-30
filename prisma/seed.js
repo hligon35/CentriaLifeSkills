@@ -52,16 +52,17 @@ async function main() {
   ] })
 
   // Seed 5 sample posts for the message board (only if none exist)
+  const placeholder = 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&q=80&auto=format&fit=crop'
   const demoPosts = [
-    { id: 'seed-post-1', authorId: admin.id, title: 'Welcome to BuddyBoard', body: 'This is our school message board for quick updates, reminders, and celebrations.' },
+    { id: 'seed-post-1', authorId: admin.id, title: 'Welcome to BuddyBoard', body: 'This is our school message board for quick updates, reminders, and celebrations.', imageUrl: placeholder },
     { id: 'seed-post-2', authorId: therapist.id, title: 'Classroom Supplies', body: 'We\'re running low on glue sticks and tissues. Donations are appreciated—thank you! 😊' },
-    { id: 'seed-post-3', authorId: therapist2.id, title: 'Field Day Friday', body: 'Wear comfortable clothes and bring a water bottle. Sunscreen recommended.' },
+    { id: 'seed-post-3', authorId: therapist2.id, title: 'Field Day Friday', body: 'Wear comfortable clothes and bring a water bottle. Sunscreen recommended.', imageUrl: placeholder },
     { id: 'seed-post-4', authorId: admin.id, title: 'Safety Drill', body: 'We\'ll have a brief safety drill tomorrow morning. No action needed from families.' },
     { id: 'seed-post-5', authorId: parent.id, title: 'Thank you team!', body: 'Appreciate all the progress updates lately—Sam is loving circle time!' }
   ]
   const created = []
   for (const p of demoPosts) {
-    created.push(await prisma.post.upsert({ where: { id: p.id }, update: { title: p.title, body: p.body }, create: p }))
+  created.push(await prisma.post.upsert({ where: { id: p.id }, update: { title: p.title, body: p.body, imageUrl: p.imageUrl || null }, create: p }))
   }
     // Add a couple comments and likes to first two posts
   if (created[0]) {
