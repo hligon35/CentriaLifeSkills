@@ -109,10 +109,3 @@ model UrgentMemo {
   createdAt    DateTime @default(now())
   expiresAt    DateTime?
 }
-
-// Simple application settings key/value store (strings for SQLite compatibility)
-model AppSetting {
-  key       String  @id
-  value     String
-  updatedAt DateTime @updatedAt
-}

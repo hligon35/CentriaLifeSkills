@@ -85,13 +85,13 @@ export default function Home() {
 
   return (
     <main className="mx-auto max-w-3xl p-4">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           {/* Insert logo and school name here */}
           <div className="text-2xl font-semibold">Life Skills</div>
           <p className="text-xs text-gray-500">School-wide updates</p>
         </div>
-  <input aria-label="Search posts" value={search} onChange={e => setSearch(e.target.value)} className="rounded border px-3 py-2 w-64" placeholder="Search posts" />
+  <input aria-label="Search posts" value={search} onChange={e => setSearch(e.target.value)} className="rounded border px-3 py-2 w-full sm:w-64" placeholder="Search posts" />
       </div>
 
       {/* Create a new post */}
@@ -145,9 +145,9 @@ export default function Home() {
               <span className="text-xs text-gray-500">{formatDistanceToNow(new Date(p.createdAt), { addSuffix: true })}</span>
             </div>
             <div className="mt-1 whitespace-pre-wrap text-sm text-gray-800">{p.body}</div>
-            {p.imageUrl && (
+        {p.imageUrl && (
               <div className="mt-3">
-                <img src={p.imageUrl} alt="Post image" className="max-h-80 w-full rounded object-cover" />
+          <img loading="lazy" src={p.imageUrl} alt="Post image" className="max-h-80 w-full rounded object-cover" />
               </div>
             )}
             {/* If you support images in body, sanitize before render. */}

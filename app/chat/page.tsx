@@ -67,10 +67,10 @@ export default function MessagesPage() {
   }
 
   return (
-  <main className="mx-auto max-w-2xl p-4">
+  <main className="mx-auto max-w-2xl p-3 sm:p-4">
       <h1 className="text-xl font-semibold mb-4">Messages</h1>
       {/* Insert legal disclaimers and emergency protocol comments here */}
-      <div className="h-[60vh] overflow-y-auto flex flex-col border rounded bg-white p-3 space-y-2">
+  <div className="h-[60vh] overflow-y-auto flex flex-col border rounded bg-white p-2 sm:p-3 space-y-2">
         {messages.map(m => {
           const s = m.sender
           const isParent = (s?.role || s?.email || '').toUpperCase().includes('PARENT')
@@ -81,7 +81,7 @@ export default function MessagesPage() {
           return (
             <div key={m.id} className={`flex ${row}`}>
               {!isParent && (
-                <img src={avatar} alt={s?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start mr-2" />
+                <img loading="lazy" src={avatar} alt={s?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start mr-2" />
               )}
               <div className={`rounded-lg px-3 py-2 max-w-[70%] ${bubble}`}>
                 <div className="text-[10px] opacity-80">{s?.name || s?.email} • {new Date(m.createdAt).toLocaleString()}</div>
@@ -90,7 +90,7 @@ export default function MessagesPage() {
                 <div className="mt-1 text-[10px] opacity-80">{m.readAt ? 'Read' : 'Sent'}</div>
               </div>
               {isParent && (
-                <img src={avatar} alt={s?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start ml-2" />
+                <img loading="lazy" src={avatar} alt={s?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start ml-2" />
               )}
             </div>
           )
@@ -102,13 +102,13 @@ export default function MessagesPage() {
           <button onClick={loadMore} className="rounded border px-3 py-1" disabled={loading}>{loading ? 'Loading…' : 'Load older'}</button>
         </div>
       )}
-      <div className="mt-3 flex items-center gap-2">
-        <input className="flex-1 rounded border px-3 py-2" placeholder="Type a secure message" value={text} onChange={e => setText(e.target.value)} />
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <input className="min-w-0 flex-1 rounded border px-3 py-2" placeholder="Type a secure message" value={text} onChange={e => setText(e.target.value)} />
         {/* Image/Video upload */}
   <input type="file" accept="image/*,video/*" className="hidden" id="media" onChange={e => setMedia(e.target.files?.[0] || null)} />
   <label htmlFor="media" className="rounded border px-3 py-2 cursor-pointer">Media</label>
   {media && <span className="text-xs text-gray-600">{media.name}</span>}
-        <button onClick={send} className="rounded bg-brand-600 text-white px-4 py-2">Send</button>
+  <button onClick={send} className="rounded bg-brand-600 text-white px-4 py-2">Send</button>
       </div>
     </main>
   )

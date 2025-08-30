@@ -23,7 +23,7 @@ export default function AdminMessagesPage() {
   }, [selected])
 
   return (
-    <main className="mx-auto max-w-5xl p-4 grid grid-cols-1 md:grid-cols-3 md:gap-0 gap-0">
+    <main className="mx-auto max-w-5xl p-3 sm:p-4 grid grid-cols-1 md:grid-cols-3 md:gap-0 gap-0">
       <section className="border bg-white p-3 md:rounded-l-lg md:rounded-r-none rounded-t-lg md:rounded-t-none">
         <div className="font-medium mb-2">Students</div>
         <ul className="space-y-2">
@@ -41,7 +41,7 @@ export default function AdminMessagesPage() {
           ))}
         </ul>
       </section>
-      <section className="md:col-span-2 border md:border-l-0 bg-white p-3 md:rounded-r-lg md:rounded-l-none rounded-b-lg md:rounded-b-none">
+  <section className="md:col-span-2 border md:border-l-0 bg-white p-3 md:rounded-r-lg md:rounded-l-none rounded-b-lg md:rounded-b-none">
         <div className="font-medium mb-2">Messages</div>
         <div className="space-y-6 max-h-[70vh] overflow-auto">
           {/* Simple grouping: show two sections, AM and PM, inferred by therapist email */}
@@ -67,14 +67,14 @@ export default function AdminMessagesPage() {
                     return (
                       <div key={m.id} className={`flex ${rowClasses}`}>
                         {!isParent && (
-                          <img src={avatar} alt={sender?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start mr-2" />
+                          <img loading="lazy" src={avatar} alt={sender?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start mr-2" />
                         )}
                         <div className={`rounded-lg px-3 py-2 max-w-[70%] ${bubbleColor}`}>
                           <div className="text-[10px] opacity-80">{sender?.name || sender?.email} • {new Date(m.createdAt).toLocaleString()}</div>
                           <div className="whitespace-pre-wrap text-sm">{m.content}</div>
                         </div>
                         {isParent && (
-                          <img src={avatar} alt={sender?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start ml-2" />
+                          <img loading="lazy" src={avatar} alt={sender?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start ml-2" />
                         )}
                       </div>
                     )

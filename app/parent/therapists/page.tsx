@@ -16,7 +16,7 @@ export default async function ParentTherapistsPage() {
   })
 
   return (
-    <main className="mx-auto max-w-3xl p-4">
+  <main className="mx-auto max-w-3xl p-3 sm:p-4">
       <h1 className="text-xl font-semibold mb-4">Your Child's Therapists</h1>
       {students.length === 0 && (
         <div className="rounded border bg-white p-4 text-sm text-gray-600">No assigned therapists found.</div>
@@ -46,7 +46,7 @@ function TherapistCard({ t, slotLabel }: { t: { id: string; name: string | null;
   const avatar = t.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(initials)}`
   return (
     <div className="rounded-lg border p-4 flex gap-3 items-start">
-      <img src={avatar} alt={t.name || 'Therapist'} className="h-14 w-14 rounded-full border" />
+  <img loading="lazy" src={avatar} alt={t.name || 'Therapist'} className="h-14 w-14 rounded-full border" />
       <div className="min-w-0">
         <div className="font-medium truncate">{t.name || 'Therapist'}</div>
         <div className="text-xs text-gray-600">{slotLabel}</div>

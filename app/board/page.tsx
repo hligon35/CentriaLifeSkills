@@ -29,19 +29,19 @@ export default function BoardPage() {
   return (
     <main className="mx-auto max-w-3xl p-4">
       <h1 className="text-xl font-semibold mb-4">Message Board</h1>
-      <div className="mb-6 rounded border bg-white p-4">
+      <div className="mb-6 rounded border bg-white p-3 sm:p-4">
         <input className="mb-2 w-full rounded border px-3 py-2" placeholder="Post title" value={title} onChange={e => setTitle(e.target.value)} />
         <textarea className="mb-2 w-full rounded border px-3 py-2" placeholder="Share updates (no PHI in examples)" value={body} onChange={e => setBody(e.target.value)} />
         <button onClick={createPost} className="rounded bg-brand-600 text-white px-4 py-2">Post</button>
       </div>
       <div className="space-y-4">
         {posts.map(p => (
-          <div key={p.id} className="rounded border bg-white p-4">
+          <div key={p.id} className="rounded border bg-white p-3 sm:p-4">
             <div className="font-medium">{p.title}</div>
             <div className="text-sm text-gray-700 whitespace-pre-wrap">{p.body}</div>
-            {p.imageUrl && (
+      {p.imageUrl && (
               <div className="mt-3">
-                <img src={p.imageUrl} alt="Post image" className="max-h-80 w-full rounded object-cover" />
+        <img loading="lazy" src={p.imageUrl} alt="Post image" className="max-h-80 w-full rounded object-cover" />
               </div>
             )}
             <div className="mt-2 text-xs text-gray-500">{formatDistanceToNow(new Date(p.createdAt), { addSuffix: true })}</div>
