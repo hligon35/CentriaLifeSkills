@@ -1,68 +1,64 @@
 'use client'
 import { useEffect, useState } from 'react'
 
-type Settings = Record<string, string>
-
 export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState<Settings>({})
+  const [loading, setLoading] = useState(true)
+  const [banner, setBanner] = useState('')
+  const [ssoEnabled, setSsoEnabled] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/api/admin/settings').then(r => r.json()).then(j => setSettings(j.settings || {}))
+    fetch('/api/admin/settings')
+      .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
+      .then((s: Record<string, string>) => {
+        setBanner(s['branding.banner'] || '')
+        setSsoEnabled((s['auth.sso.enabled'] || 'false') === 'true')
+      })
+      .catch(e => setError(String(e)))
+      .finally(() => setLoading(false))
   }, [])
 
   async function save() {
     setSaving(true)
-    await fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) })
-    setSaving(false)
+    setError(null)
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 'branding.banner': banner, 'auth.sso.enabled': String(ssoEnabled) })
+      })
+      if (!res.ok) throw new Error('Failed to save')
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setSaving(false)
+    }
   }
 
-  function set(key: string, val: string) {
-    setSettings(s => ({ ...s, [key]: val }))
-  }
+  if (loading) return <main className="mx-auto max-w-3xl p-4">Loading…</main>
 
   return (
     <main className="mx-auto max-w-3xl p-4">
       <h1 className="text-xl font-semibold mb-4">Admin Settings</h1>
-      <div className="space-y-6">
+      {error && <div className="mb-3 rounded border border-red-200 bg-red-50 p-2 text-sm text-red-700">{error}</div>}
+      <div className="space-y-4">
         <section className="rounded border bg-white p-4">
-          <div className="font-medium mb-2">Branding</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label className="text-sm">
-              <div className="mb-1 text-gray-600">School Name</div>
-              <input className="w-full rounded border px-3 py-2" value={settings['brand.name'] || ''} onChange={e => set('brand.name', e.target.value)} />
-            </label>
-            <label className="text-sm">
-              <div className="mb-1 text-gray-600">Primary Color</div>
-              <input type="color" className="w-full rounded border px-3 py-2 h-10" value={settings['brand.primary'] || '#623394'} onChange={e => set('brand.primary', e.target.value)} />
-            </label>
-            <label className="text-sm">
-              <div className="mb-1 text-gray-600">Secondary Color</div>
-              <input type="color" className="w-full rounded border px-3 py-2 h-10" value={settings['brand.secondary'] || '#0057b8'} onChange={e => set('brand.secondary', e.target.value)} />
-            </label>
-          </div>
+          <h2 className="font-medium mb-2">Branding</h2>
+          <label className="block text-sm mb-1">Banner text</label>
+          <input value={banner} onChange={e => setBanner(e.target.value)} className="w-full rounded border px-3 py-2" placeholder="Welcome to Life Skills" />
         </section>
 
         <section className="rounded border bg-white p-4">
-          <div className="font-medium mb-2">Announcement Banner</div>
-          <input className="mb-2 w-full rounded border px-3 py-2" placeholder="Banner message (optional)" value={settings['banner.message'] || ''} onChange={e => set('banner.message', e.target.value)} />
-          <label className="text-sm flex items-center gap-2">
-            <input type="checkbox" checked={(settings['banner.enabled'] || 'false') === 'true'} onChange={e => set('banner.enabled', String(e.target.checked))} />
-            Enable banner
+          <h2 className="font-medium mb-2">Authentication</h2>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={ssoEnabled} onChange={e => setSsoEnabled(e.target.checked)} />
+            Enable SSO (OIDC)
           </label>
+          <p className="mt-1 text-xs text-gray-500">Requires OIDC env vars; toggle affects login UI.</p>
         </section>
 
-        <section className="rounded border bg-white p-4">
-          <div className="font-medium mb-2">Authentication</div>
-          <label className="text-sm flex items-center gap-2">
-            <input type="checkbox" checked={(settings['auth.sso.enabled'] || 'false') === 'true'} onChange={e => set('auth.sso.enabled', String(e.target.checked))} />
-            Enable SSO (requires server env setup)
-          </label>
-        </section>
-
-        <div className="text-right">
-          <button onClick={save} disabled={saving} className="rounded bg-brand-600 text-white px-4 py-2 disabled:opacity-60">{saving ? 'Saving…' : 'Save Settings'}</button>
-        </div>
+        <button onClick={save} disabled={saving} className="rounded bg-brand-600 text-white px-4 py-2 disabled:opacity-60">{saving ? 'Saving…' : 'Save settings'}</button>
       </div>
     </main>
   )

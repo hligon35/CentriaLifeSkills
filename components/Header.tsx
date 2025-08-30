@@ -24,6 +24,7 @@ export default function Header() {
             <Link href="/">Home</Link>
             <Link href="/chat">Messages</Link>
             {role === 'PARENT' && <Link href="/parent/therapists">Therapists</Link>}
+            {role === 'ADMIN' && <Link href="/admin/settings">Admin</Link>}
             <Link href="/settings">Settings</Link>
             <button onClick={onLogout} className="rounded border px-3 py-1">Logout</button>
           </div>
@@ -39,6 +40,7 @@ export default function Header() {
               <Link href="/" onClick={() => setOpen(false)} className="px-3 py-2">Home</Link>
               <Link href="/chat" onClick={() => setOpen(false)} className="px-3 py-2">Messages</Link>
               {role === 'PARENT' && <Link href="/parent/therapists" onClick={() => setOpen(false)} className="px-3 py-2">Therapists</Link>}
+              {role === 'ADMIN' && <Link href="/admin/settings" onClick={() => setOpen(false)} className="px-3 py-2">Admin</Link>}
               <Link href="/settings" onClick={() => setOpen(false)} className="px-3 py-2">Settings</Link>
               <button onClick={() => { setOpen(false); onLogout() }} className="text-left px-3 py-2">Logout</button>
             </div>

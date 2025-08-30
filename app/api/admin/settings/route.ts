@@ -1,3 +1,28 @@
+import { prisma } from '@/lib/prisma'
+import { getSession } from '@/lib/session'
+import { NextRequest, NextResponse } from 'next/server'
+
+export async function GET() {
+  const me = await getSession()
+  if (!me || me.role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const items = await prisma.appSetting.findMany()
+  const settings = Object.fromEntries(items.map(i => [i.key, i.value]))
+  return NextResponse.json(settings)
+}
+
+export async function POST(req: NextRequest) {
+  const me = await getSession()
+  if (!me || me.role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const body = await req.json().catch(() => ({})) as Record<string, string>
+  const entries = Object.entries(body)
+  if (entries.length === 0) return NextResponse.json({ ok: true })
+  await prisma.$transaction(entries.map(([key, value]) => prisma.appSetting.upsert({
+    where: { key },
+    update: { value: String(value ?? '') },
+    create: { key, value: String(value ?? '') },
+  })))
+  return NextResponse.json({ ok: true })
+}
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/session'
