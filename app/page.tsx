@@ -18,10 +18,12 @@ export default function Home() {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [creating, setCreating] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => { refresh() }, [])
 
   async function refresh() {
+  setLoading(true)
     try {
       const res = await fetch('/api/board')
       if (res.status === 401) {
@@ -36,9 +38,9 @@ export default function Home() {
         // Fallback to empty list if API returned an error page or non-array
         setPosts([])
       }
-    } catch {
+  } catch {
       setPosts([])
-    }
+  } finally { setLoading(false) }
   }
 
   const filtered = useMemo(() => {
@@ -86,7 +88,7 @@ export default function Home() {
           <div className="text-2xl font-semibold">Life Skills</div>
           <p className="text-xs text-gray-500">School-wide updates</p>
         </div>
-        <input value={search} onChange={e => setSearch(e.target.value)} className="rounded border px-3 py-2 w-64" placeholder="Search posts" />
+  <input aria-label="Search posts" value={search} onChange={e => setSearch(e.target.value)} className="rounded border px-3 py-2 w-64" placeholder="Search posts" />
       </div>
 
       {/* Create a new post */}
@@ -113,6 +115,20 @@ export default function Home() {
       </div>
 
       <div className="space-y-4">
+        {loading && (
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="animate-pulse rounded border bg-white p-4">
+                <div className="h-4 w-1/3 bg-gray-200 rounded" />
+                <div className="mt-2 h-3 w-2/3 bg-gray-100 rounded" />
+                <div className="mt-1 h-3 w-5/6 bg-gray-100 rounded" />
+              </div>
+            ))}
+          </div>
+        )}
+        {!loading && filtered.length === 0 && (
+          <div className="rounded border bg-white p-6 text-center text-gray-500">No posts yet. Be the first to share an update.</div>
+        )}
         {(Array.isArray(filtered) ? filtered : []).map(p => (
           <article key={p.id} className="rounded border bg-white p-4">
             <div className="flex items-center justify-between">
@@ -122,7 +138,7 @@ export default function Home() {
             <div className="mt-1 whitespace-pre-wrap text-sm text-gray-800">{p.body}</div>
             {/* If you support images in body, sanitize before render. */}
             <div className="mt-3 flex items-center gap-4 text-sm">
-              <button disabled={liking === p.id} onClick={() => toggleLike(p.id)} className="rounded border px-3 py-1">👍 Like ({p.likes?.length || 0})</button>
+              <button aria-label="Toggle like" disabled={liking === p.id} onClick={() => toggleLike(p.id)} className="rounded border px-3 py-1">👍 Like ({p.likes?.length || 0})</button>
               <span className="text-gray-500">{p.comments.length} comments</span>
             </div>
           </article>
