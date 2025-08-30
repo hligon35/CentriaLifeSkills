@@ -18,7 +18,7 @@ export default function Header() {
     <header className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b">
       <nav className="mx-auto max-w-5xl p-3">
         <div className="flex items-center justify-between">
-          <div className="font-semibold">{/* Insert logo and school name here */}BuddyBoard</div>
+          <div className="font-semibold mx-auto sm:mx-0">{/* Insert logo and school name here */}BuddyBoard</div>
           {/* Desktop nav */}
           <div className="hidden sm:flex gap-4 text-sm items-center">
             <Link href="/">Home</Link>

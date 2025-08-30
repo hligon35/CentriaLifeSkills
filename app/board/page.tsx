@@ -28,7 +28,7 @@ export default function BoardPage() {
 
   return (
     <main className="mx-auto max-w-3xl p-4">
-      <h1 className="text-xl font-semibold mb-4">Message Board</h1>
+  <h1 className="text-xl font-semibold mb-4 text-center sm:text-left">Message Board</h1>
       <div className="mb-6 rounded border bg-white p-3 sm:p-4">
         <input className="mb-2 w-full rounded border px-3 py-2" placeholder="Post title" value={title} onChange={e => setTitle(e.target.value)} />
         <textarea className="mb-2 w-full rounded border px-3 py-2" placeholder="Share updates (no PHI in examples)" value={body} onChange={e => setBody(e.target.value)} />

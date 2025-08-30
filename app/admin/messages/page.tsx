@@ -23,9 +23,9 @@ export default function AdminMessagesPage() {
   }, [selected])
 
   return (
-    <main className="mx-auto max-w-5xl p-3 sm:p-4 grid grid-cols-1 md:grid-cols-3 md:gap-0 gap-0">
+  <main className="mx-auto max-w-5xl p-3 sm:p-4 grid grid-cols-1 md:grid-cols-3 md:gap-0 gap-0">
       <section className="border bg-white p-3 md:rounded-l-lg md:rounded-r-none rounded-t-lg md:rounded-t-none">
-        <div className="font-medium mb-2">Students</div>
+    <div className="font-medium mb-2 text-center md:text-left">Students</div>
         <ul className="space-y-2">
           {students.map(s => (
             <li key={s.id}>

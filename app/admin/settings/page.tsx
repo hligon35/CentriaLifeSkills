@@ -40,17 +40,17 @@ export default function AdminSettingsPage() {
 
   return (
     <main className="mx-auto max-w-3xl p-4">
-      <h1 className="text-xl font-semibold mb-4">Admin Settings</h1>
+      <h1 className="text-xl font-semibold mb-4 text-center sm:text-left">Admin Settings</h1>
       {error && <div className="mb-3 rounded border border-red-200 bg-red-50 p-2 text-sm text-red-700">{error}</div>}
       <div className="space-y-4">
         <section className="rounded border bg-white p-4">
-          <h2 className="font-medium mb-2">Branding</h2>
+          <h2 className="font-medium mb-2 text-center sm:text-left">Branding</h2>
           <label className="block text-sm mb-1">Banner text</label>
           <input value={banner} onChange={e => setBanner(e.target.value)} className="w-full rounded border px-3 py-2" placeholder="Welcome to Life Skills" />
         </section>
 
         <section className="rounded border bg-white p-4">
-          <h2 className="font-medium mb-2">Authentication</h2>
+          <h2 className="font-medium mb-2 text-center sm:text-left">Authentication</h2>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={ssoEnabled} onChange={e => setSsoEnabled(e.target.checked)} />
             Enable SSO (OIDC)

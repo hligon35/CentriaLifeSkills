@@ -68,7 +68,7 @@ export default function MessagesPage() {
 
   return (
   <main className="mx-auto max-w-2xl p-3 sm:p-4">
-      <h1 className="text-xl font-semibold mb-4">Messages</h1>
+  <h1 className="text-xl font-semibold mb-4 text-center sm:text-left">Messages</h1>
       {/* Insert legal disclaimers and emergency protocol comments here */}
   <div className="h-[60vh] overflow-y-auto flex flex-col border rounded bg-white p-2 sm:p-3 space-y-2">
         {messages.map(m => {

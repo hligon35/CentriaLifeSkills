@@ -85,13 +85,13 @@ export default function Home() {
 
   return (
     <main className="mx-auto max-w-3xl p-4">
-      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div>
+      <div className="mb-4 flex flex-col items-center sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="text-center sm:text-left">
           {/* Insert logo and school name here */}
           <div className="text-2xl font-semibold">Life Skills</div>
           <p className="text-xs text-gray-500">School-wide updates</p>
         </div>
-  <input aria-label="Search posts" value={search} onChange={e => setSearch(e.target.value)} className="rounded border px-3 py-2 w-full sm:w-64" placeholder="Search posts" />
+        <input aria-label="Search posts" value={search} onChange={e => setSearch(e.target.value)} className="rounded border px-3 py-2 w-full sm:w-64" placeholder="Search posts" />
       </div>
 
       {/* Create a new post */}

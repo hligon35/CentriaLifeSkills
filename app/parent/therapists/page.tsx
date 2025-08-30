@@ -17,7 +17,7 @@ export default async function ParentTherapistsPage() {
 
   return (
   <main className="mx-auto max-w-3xl p-3 sm:p-4">
-      <h1 className="text-xl font-semibold mb-4">Your Child's Therapists</h1>
+  <h1 className="text-xl font-semibold mb-4 text-center sm:text-left">Your Child's Therapists</h1>
       {students.length === 0 && (
         <div className="rounded border bg-white p-4 text-sm text-gray-600">No assigned therapists found.</div>
       )}
