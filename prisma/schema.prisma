@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL") // Insert organization-specific database credentials
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  role         String
+  passwordHash String
+  photoUrl     String?
+  childProfile String?
+  createdAt    DateTime @default(now())
+  messagesSent Message[] @relation("messagesSent")
+  messagesRecv Message[] @relation("messagesRecv")
+  posts        Post[]
+  comments     Comment[]
+  notifications Notification[]
+  likes        PostLike[]
+  // Back-relations for Student model
+  studentsAsParent      Student[] @relation("parent")
+  studentsAsAmTherapist Student[] @relation("amTherapist")
+  studentsAsPmTherapist Student[] @relation("pmTherapist")
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  sender     User     @relation(fields: [senderId], references: [id], name: "messagesSent")
+  senderId   String
+  receiver   User     @relation(fields: [receiverId], references: [id], name: "messagesRecv")
+  receiverId String
+  content    String   // ciphertext if E2EE
+  mediaUrl   String?
+  mediaType  String?
+  iv         String?  // E2EE IV/base64
+  createdAt  DateTime @default(now())
+  readAt     DateTime?
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  title     String
+  body      String   // can be markdown; sanitize on render
+  createdAt DateTime @default(now())
+  comments  Comment[]
+  likes     PostLike[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  type      String
+  payload   String
+  channel   String   // in-app, email, sms
+  status    String   // queued, sent, failed, read
+  createdAt DateTime @default(now())
+}
+
+model PostLike {
+  post      Post   @relation(fields: [postId], references: [id])
+  postId    String
+  user      User   @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime @default(now())
+  @@id([postId, userId])
+}
+
+// Note: SQLite connector does not support enums. Using String for `role`.
+
+model Student {
+  id             String @id @default(cuid())
+  name           String
+  parent         User   @relation("parent", fields: [parentId], references: [id])
+  parentId       String
+  amTherapist    User   @relation("amTherapist", fields: [amTherapistId], references: [id])
+  amTherapistId  String
+  pmTherapist    User   @relation("pmTherapist", fields: [pmTherapistId], references: [id])
+  pmTherapistId  String
+  createdAt      DateTime @default(now())
+}
