@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { formatDistanceToNow } from 'date-fns'
 
 type Post = { id: string; title: string; body: string; createdAt: string; comments: { id: string; body: string; createdAt: string }[] }
 
@@ -38,12 +39,12 @@ export default function BoardPage() {
           <div key={p.id} className="rounded border bg-white p-4">
             <div className="font-medium">{p.title}</div>
             <div className="text-sm text-gray-700 whitespace-pre-wrap">{p.body}</div>
-            <div className="mt-2 text-xs text-gray-500">{new Date(p.createdAt).toLocaleString()}</div>
+            <div className="mt-2 text-xs text-gray-500">{formatDistanceToNow(new Date(p.createdAt), { addSuffix: true })}</div>
             <div className="mt-3 border-t pt-3 space-y-2">
               {p.comments.map(c => (
                 <div key={c.id} className="text-sm">
                   <div>{c.body}</div>
-                  <div className="text-[10px] text-gray-500">{new Date(c.createdAt).toLocaleString()}</div>
+                  <div className="text-[10px] text-gray-500">{formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })}</div>
                 </div>
               ))}
               <div className="flex gap-2">

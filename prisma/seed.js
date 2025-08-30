@@ -52,31 +52,29 @@ async function main() {
   ] })
 
   // Seed 5 sample posts for the message board (only if none exist)
-  const postCount = await prisma.post.count()
-  if (postCount === 0) {
-    const demoPosts = [
-      { authorId: admin.id, title: 'Welcome to BuddyBoard', body: 'This is our school message board for quick updates, reminders, and celebrations.' },
-      { authorId: therapist.id, title: 'Classroom Supplies', body: 'We\'re running low on glue sticks and tissues. Donations are appreciated—thank you! 😊' },
-      { authorId: therapist2.id, title: 'Field Day Friday', body: 'Wear comfortable clothes and bring a water bottle. Sunscreen recommended.' },
-      { authorId: admin.id, title: 'Safety Drill', body: 'We\'ll have a brief safety drill tomorrow morning. No action needed from families.' },
-      { authorId: parent.id, title: 'Thank you team!', body: 'Appreciate all the progress updates lately—Sam is loving circle time!' }
-    ]
-    const created = []
-    for (const p of demoPosts) {
-      created.push(await prisma.post.create({ data: p }))
-    }
+  const demoPosts = [
+    { id: 'seed-post-1', authorId: admin.id, title: 'Welcome to BuddyBoard', body: 'This is our school message board for quick updates, reminders, and celebrations.' },
+    { id: 'seed-post-2', authorId: therapist.id, title: 'Classroom Supplies', body: 'We\'re running low on glue sticks and tissues. Donations are appreciated—thank you! 😊' },
+    { id: 'seed-post-3', authorId: therapist2.id, title: 'Field Day Friday', body: 'Wear comfortable clothes and bring a water bottle. Sunscreen recommended.' },
+    { id: 'seed-post-4', authorId: admin.id, title: 'Safety Drill', body: 'We\'ll have a brief safety drill tomorrow morning. No action needed from families.' },
+    { id: 'seed-post-5', authorId: parent.id, title: 'Thank you team!', body: 'Appreciate all the progress updates lately—Sam is loving circle time!' }
+  ]
+  const created = []
+  for (const p of demoPosts) {
+    created.push(await prisma.post.upsert({ where: { id: p.id }, update: { title: p.title, body: p.body }, create: p }))
+  }
     // Add a couple comments and likes to first two posts
-    if (created[0]) {
-      await prisma.comment.create({ data: { postId: created[0].id, authorId: therapist.id, body: 'Welcome everyone! 👋' } })
-      await prisma.postLike.createMany({ data: [
-        { postId: created[0].id, userId: admin.id },
-        { postId: created[0].id, userId: parent.id }
-      ] })
-    }
-    if (created[1]) {
-      await prisma.comment.create({ data: { postId: created[1].id, authorId: parent.id, body: 'We\'ll bring some tissues this week.' } })
-      await prisma.postLike.create({ data: { postId: created[1].id, userId: therapist2.id } })
-    }
+  if (created[0]) {
+    // Avoid duplicating the same seed comment/likes by checking existence
+    const existsC1 = await prisma.comment.findFirst({ where: { postId: created[0].id, authorId: therapist.id, body: 'Welcome everyone! 👋' } })
+    if (!existsC1) await prisma.comment.create({ data: { postId: created[0].id, authorId: therapist.id, body: 'Welcome everyone! 👋' } })
+    await prisma.postLike.upsert({ where: { postId_userId: { postId: created[0].id, userId: admin.id } }, update: {}, create: { postId: created[0].id, userId: admin.id } })
+    await prisma.postLike.upsert({ where: { postId_userId: { postId: created[0].id, userId: parent.id } }, update: {}, create: { postId: created[0].id, userId: parent.id } })
+  }
+  if (created[1]) {
+    const existsC2 = await prisma.comment.findFirst({ where: { postId: created[1].id, authorId: parent.id, body: 'We\'ll bring some tissues this week.' } })
+    if (!existsC2) await prisma.comment.create({ data: { postId: created[1].id, authorId: parent.id, body: 'We\'ll bring some tissues this week.' } })
+    await prisma.postLike.upsert({ where: { postId_userId: { postId: created[1].id, userId: therapist2.id } }, update: {}, create: { postId: created[1].id, userId: therapist2.id } })
   }
 
   console.log({ therapist: therapist.email, therapist2: therapist2.email, parent: parent.email, admin: admin.email, student: student.name })
