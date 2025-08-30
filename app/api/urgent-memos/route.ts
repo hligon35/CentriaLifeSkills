@@ -15,9 +15,8 @@ export async function GET() {
         { audience: user.role },
         { audience: 'USER', targetUserId: user.sub }
       ],
-      OR: [
-        { expiresAt: null },
-        { expiresAt: { gt: now } }
+      AND: [
+        { OR: [ { expiresAt: null }, { expiresAt: { gt: now } } ] }
       ]
     },
     orderBy: { createdAt: 'desc' }
