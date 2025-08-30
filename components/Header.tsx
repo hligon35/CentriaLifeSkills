@@ -1,10 +1,12 @@
 "use client"
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import clsx from 'clsx'
 
 export default function Header() {
   const router = useRouter()
+  const pathname = usePathname()
   const [role, setRole] = useState<string | null>(null)
   const onLogout = useCallback(async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -41,51 +43,55 @@ export default function Header() {
           </div>
         </div>
         {/* Mobile bottom nav */}
-        <MobileBottomNav role={role} />
+        <MobileBottomNav role={role} activePath={pathname || '/'} />
       </nav>
     </header>
   )
 }
 
-function MobileBottomNav({ role }: { role: string | null }) {
+function MobileBottomNav({ role, activePath }: { role: string | null; activePath: string }) {
   // Choose 4 nav items based on role
-  const items = ((): Array<{ href: string; label: string; icon: JSX.Element }> => {
+  const items = useMemo((): Array<{ href: string; label: string; icon: JSX.Element; match: (p: string) => boolean }> => {
     if (role === 'PARENT') {
       return [
-        { href: '/', label: 'Home', icon: IconHome() },
-        { href: '/chat', label: 'Messages', icon: IconChat() },
-        { href: '/parent/therapists', label: 'Therapists', icon: IconUsers() },
-        { href: '/settings', label: 'Settings', icon: IconCog() },
+        { href: '/', label: 'Home', icon: IconHome(), match: p => p === '/' },
+        { href: '/chat', label: 'Messages', icon: IconChat(), match: p => p.startsWith('/chat') },
+        { href: '/parent/therapists', label: 'Therapists', icon: IconUsers(), match: p => p.startsWith('/parent/therapists') },
+        { href: '/settings', label: 'Settings', icon: IconCog(), match: p => p.startsWith('/settings') },
       ]
     }
     if (role === 'ADMIN') {
       return [
-        { href: '/', label: 'Home', icon: IconHome() },
-        { href: '/chat', label: 'Messages', icon: IconChat() },
-        { href: '/admin/settings', label: 'Admin', icon: IconShield() },
-        { href: '/settings', label: 'Settings', icon: IconCog() },
+        { href: '/', label: 'Home', icon: IconHome(), match: p => p === '/' },
+        { href: '/chat', label: 'Messages', icon: IconChat(), match: p => p.startsWith('/chat') },
+        { href: '/admin/settings', label: 'Admin', icon: IconShield(), match: p => p.startsWith('/admin') },
+        { href: '/settings', label: 'Settings', icon: IconCog(), match: p => p.startsWith('/settings') },
       ]
     }
     // Default (therapist)
     return [
-      { href: '/', label: 'Home', icon: IconHome() },
-      { href: '/chat', label: 'Messages', icon: IconChat() },
-      { href: '/notifications', label: 'Alerts', icon: IconBell() },
-      { href: '/settings', label: 'Settings', icon: IconCog() },
+      { href: '/', label: 'Home', icon: IconHome(), match: p => p === '/' },
+      { href: '/chat', label: 'Messages', icon: IconChat(), match: p => p.startsWith('/chat') },
+      { href: '/notifications', label: 'Alerts', icon: IconBell(), match: p => p.startsWith('/notifications') },
+      { href: '/settings', label: 'Settings', icon: IconCog(), match: p => p.startsWith('/settings') },
     ]
-  })()
+  }, [role])
 
   return (
-    <div className="sm:hidden fixed bottom-0 inset-x-0 z-20 border-t bg-white/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
-      <div className="mx-auto max-w-5xl grid grid-cols-4">
-        {items.map((it) => (
-          <Link key={it.href} href={it.href} className="flex flex-col items-center justify-center gap-1 py-2 text-xs">
-            <span aria-hidden className="h-6 w-6 text-gray-700">{it.icon}</span>
-            <span>{it.label}</span>
-          </Link>
-        ))}
-      </div>
-    </div>
+    <nav className="sm:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-30 w-[92%] max-w-md rounded-full bg-brand-600 text-white shadow-lg">
+      <ul className="grid grid-cols-4">
+        {items.map((it) => {
+          const active = it.match(activePath)
+          return (
+            <li key={it.href} className="list-none">
+              <Link aria-label={it.label} href={it.href} className={clsx('flex items-center justify-center py-3', active ? 'opacity-100' : 'opacity-80') }>
+                <span aria-hidden className={clsx('h-8 w-8 rounded-full flex items-center justify-center', active ? 'bg-white/20' : 'bg-transparent')}>{it.icon}</span>
+              </Link>
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
   )
 }
 
