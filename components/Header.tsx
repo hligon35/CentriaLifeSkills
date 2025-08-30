@@ -21,6 +21,7 @@ export default function Header() {
           <Link href="/">Home</Link>
           <Link href="/chat">Messages</Link>
           {role === 'PARENT' && <Link href="/parent/therapists">Therapists</Link>}
+          {role === 'ADMIN' && <Link href="/admin/settings">Admin</Link>}
           <Link href="/settings">Settings</Link>
           <button onClick={onLogout} className="rounded border px-3 py-1">Logout</button>
         </div>
