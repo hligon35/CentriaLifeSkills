@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 
-type Student = { id: string; name: string }
+type Student = { id: string; name: string; parent?: Participant; amTherapist?: Participant; pmTherapist?: Participant }
 type Message = { id: string; senderId: string; receiverId: string; content: string; createdAt: string }
 type Participant = { id: string; name: string; email: string; role?: string; photoUrl?: string }
 type StudentContext = { id: string; name: string; parentId: string; amTherapistId: string; pmTherapistId: string }
@@ -23,18 +23,25 @@ export default function AdminMessagesPage() {
   }, [selected])
 
   return (
-    <main className="mx-auto max-w-5xl p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-      <section className="rounded border bg-white p-3">
+    <main className="mx-auto max-w-5xl p-4 grid grid-cols-1 md:grid-cols-3 md:gap-0 gap-0">
+      <section className="border bg-white p-3 md:rounded-l-lg md:rounded-r-none rounded-t-lg md:rounded-t-none">
         <div className="font-medium mb-2">Students</div>
-        <ul className="space-y-1">
+        <ul className="space-y-2">
           {students.map(s => (
             <li key={s.id}>
-              <button onClick={() => setSelected(s.id)} className={`w-full text-left px-2 py-1 rounded ${selected === s.id ? 'bg-brand-50' : ''}`}>{s.name}</button>
+              <button onClick={() => setSelected(s.id)} className={`w-full text-left px-3 py-2 rounded-lg border flex items-center gap-2 ${selected === s.id ? 'bg-brand-50 border-brand-200' : 'hover:bg-gray-50'}`}>
+                <div className="flex items-center gap-1">
+                  {s.parent && <img className="h-6 w-6 rounded-full border" src={s.parent.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent((s.parent.name||s.parent.email||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}`} alt={s.parent.name || 'Parent'} />}
+                  {s.amTherapist && <img className="h-6 w-6 rounded-full border" src={s.amTherapist.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent((s.amTherapist.name||s.amTherapist.email||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}`} alt={s.amTherapist.name || 'AM Therapist'} />}
+                  {s.pmTherapist && <img className="h-6 w-6 rounded-full border" src={s.pmTherapist.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent((s.pmTherapist.name||s.pmTherapist.email||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}`} alt={s.pmTherapist.name || 'PM Therapist'} />}
+                </div>
+                <span className="truncate">{s.name}</span>
+              </button>
             </li>
           ))}
         </ul>
       </section>
-      <section className="md:col-span-2 rounded border bg-white p-3">
+      <section className="md:col-span-2 border md:border-l-0 bg-white p-3 md:rounded-r-lg md:rounded-l-none rounded-b-lg md:rounded-b-none">
         <div className="font-medium mb-2">Messages</div>
         <div className="space-y-6 max-h-[70vh] overflow-auto">
           {/* Simple grouping: show two sections, AM and PM, inferred by therapist email */}

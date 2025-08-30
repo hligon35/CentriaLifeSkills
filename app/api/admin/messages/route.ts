@@ -8,8 +8,16 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const studentId = searchParams.get('studentId')
   if (!studentId) {
-    // List students with minimal details
-    const students = await prisma.student.findMany({ select: { id: true, name: true } })
+    // List students with their parent and therapists for avatars
+    const students = await prisma.student.findMany({
+      select: {
+        id: true,
+        name: true,
+        parent: { select: { id: true, name: true, email: true, photoUrl: true } },
+        amTherapist: { select: { id: true, name: true, email: true, photoUrl: true } },
+        pmTherapist: { select: { id: true, name: true, email: true, photoUrl: true } },
+      }
+    })
     return NextResponse.json({ students })
   }
   // Fetch parent + therapists
