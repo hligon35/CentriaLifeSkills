@@ -96,3 +96,15 @@ model Student {
   pmTherapistId  String
   createdAt      DateTime @default(now())
 }
+
+// Admin-configured urgent memos displayed to users on login
+model UrgentMemo {
+  id           String   @id @default(cuid())
+  title        String
+  body         String
+  active       Boolean  @default(true)
+  audience     String   // ALL | THERAPIST | PARENT | USER
+  targetUserId String?
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime?
+}

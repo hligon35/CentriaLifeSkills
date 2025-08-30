@@ -4,3 +4,5 @@ node_modules
 *.log
 dev.db
 prisma/dev.db
+*.tsbuildinfo
+tsconfig.tsbuildinfo
