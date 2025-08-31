@@ -15,10 +15,20 @@ async function main() {
     update: {},
     create: { email: 'therapist2@example.com', name: 'Therapist Ben', role: 'THERAPIST', passwordHash: pass, photoUrl: 'https://api.dicebear.com/9.x/initials/svg?seed=TB' }
   })
+  const therapist3 = await prisma.user.upsert({
+    where: { email: 'therapist3@example.com' },
+    update: {},
+    create: { email: 'therapist3@example.com', name: 'Therapist Chloe', role: 'THERAPIST', passwordHash: pass, photoUrl: 'https://api.dicebear.com/9.x/initials/svg?seed=TC' }
+  })
   const parent = await prisma.user.upsert({
     where: { email: 'parent@example.com' },
     update: {},
     create: { email: 'parent@example.com', name: 'Parent Bob', role: 'PARENT', passwordHash: pass, photoUrl: 'https://api.dicebear.com/9.x/initials/svg?seed=PB' }
+  })
+  const parent2 = await prisma.user.upsert({
+    where: { email: 'parent2@example.com' },
+    update: {},
+    create: { email: 'parent2@example.com', name: 'Parent Dana', role: 'PARENT', passwordHash: pass, photoUrl: 'https://api.dicebear.com/9.x/initials/svg?seed=PD' }
   })
   const admin = await prisma.user.upsert({
     where: { email: 'admin@example.com' },
@@ -36,6 +46,30 @@ async function main() {
       parentId: parent.id,
       amTherapistId: therapist.id,
       pmTherapistId: therapist2.id
+    }
+  })
+
+  const student2 = await prisma.student.upsert({
+    where: { id: 'seed-student-2' },
+    update: {},
+    create: {
+      id: 'seed-student-2',
+      name: 'Student Riley',
+      parentId: parent2.id,
+      amTherapistId: therapist2.id,
+      pmTherapistId: therapist3.id
+    }
+  })
+
+  const student3 = await prisma.student.upsert({
+    where: { id: 'seed-student-3' },
+    update: {},
+    create: {
+      id: 'seed-student-3',
+      name: 'Student Morgan',
+      parentId: parent.id,
+      amTherapistId: therapist3.id,
+      pmTherapistId: therapist.id
     }
   })
 
@@ -78,7 +112,26 @@ async function main() {
     await prisma.postLike.upsert({ where: { postId_userId: { postId: created[1].id, userId: therapist2.id } }, update: {}, create: { postId: created[1].id, userId: therapist2.id } })
   }
 
-  console.log({ therapist: therapist.email, therapist2: therapist2.email, parent: parent.email, admin: admin.email, student: student.name })
+  // Demo events
+  const now = new Date()
+  const start1 = new Date(now.getFullYear(), now.getMonth(), Math.min(10, 28), 9, 0, 0)
+  const end1 = new Date(start1.getFullYear(), start1.getMonth(), start1.getDate(), 10, 0, 0)
+  const start2 = new Date(now.getFullYear(), now.getMonth(), Math.min(18, 28), 13, 0, 0)
+  const end2 = new Date(start2.getFullYear(), start2.getMonth(), start2.getDate(), 14, 0, 0)
+  await prisma.event.upsert({ where: { id: 'seed-evt-1' }, update: { title: 'IEP Meeting Window', description: 'Check your inbox for assigned times.', audience: 'PARENT', startAt: start1, endAt: end1 }, create: { id: 'seed-evt-1', title: 'IEP Meeting Window', description: 'Check your inbox for assigned times.', audience: 'PARENT', startAt: start1, endAt: end1 } })
+  await prisma.event.upsert({ where: { id: 'seed-evt-2' }, update: { title: 'Staff PD', description: 'Professional development afternoon.', audience: 'THERAPIST', startAt: start2, endAt: end2 }, create: { id: 'seed-evt-2', title: 'Staff PD', description: 'Professional development afternoon.', audience: 'THERAPIST', startAt: start2, endAt: end2 } })
+
+  console.log({
+    therapist: therapist.email,
+    therapist2: therapist2.email,
+    therapist3: therapist3.email,
+    parent: parent.email,
+    parent2: parent2.email,
+    admin: admin.email,
+    student: student.name,
+    student2: student2.name,
+    student3: student3.name,
+  })
 }
 
 main().catch(e => { console.error(e); process.exit(1) }).finally(() => prisma.$disconnect())

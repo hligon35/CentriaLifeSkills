@@ -15,6 +15,7 @@ type Post = {
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([])
   const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
   const [liking, setLiking] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
@@ -44,6 +45,9 @@ export default function Home() {
       setPosts([])
   } finally { setLoading(false) }
   }
+
+  // Debounce search input
+  useEffect(() => { const id = setTimeout(() => setSearch(searchInput), 250); return () => clearTimeout(id) }, [searchInput])
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim()
@@ -91,7 +95,7 @@ export default function Home() {
           <div className="text-2xl font-semibold">Life Skills</div>
           <p className="text-xs text-gray-500">School-wide updates</p>
         </div>
-        <input aria-label="Search posts" value={search} onChange={e => setSearch(e.target.value)} className="rounded border px-3 py-2 w-full sm:w-64" placeholder="Search posts" />
+  <input aria-label="Search posts" value={searchInput} onChange={e => setSearchInput(e.target.value)} className="rounded border px-3 py-2 w-full sm:w-64" placeholder="Search posts" />
       </div>
 
       {/* Create a new post */}
@@ -139,7 +143,7 @@ export default function Home() {
           <div className="rounded border bg-white p-6 text-center text-gray-500">No posts yet. Be the first to share an update.</div>
         )}
         {(Array.isArray(filtered) ? filtered : []).map(p => (
-          <article key={p.id} className="rounded border bg-white p-4">
+          <article key={p.id} id={`post-${p.id}`} className="rounded border bg-white p-4">
             <div className="flex items-center justify-between">
               <h2 className="font-medium text-lg">{p.title}</h2>
               <span className="text-xs text-gray-500">{formatDistanceToNow(new Date(p.createdAt), { addSuffix: true })}</span>
@@ -155,6 +159,7 @@ export default function Home() {
               <button aria-label="Toggle like" disabled={liking === p.id} onClick={() => toggleLike(p.id)} className="rounded border px-3 py-1">👍 Like ({p.likes?.length || 0})</button>
               <span className="text-gray-500">{p.comments.length} comments</span>
             </div>
+            <CommentBox postId={p.id} onAdded={(c) => setPosts(prev => prev.map(x => x.id === p.id ? { ...x, comments: [...x.comments, c] } : x))} />
           </article>
         ))}
       </div>
@@ -162,5 +167,23 @@ export default function Home() {
       {/* Insert privacy policy link here for GDPR/FERPA */}
       {/* Emergency contact protocols comment: Insert emergency contact info location here */}
     </main>
+  )
+}
+
+function CommentBox({ postId, onAdded }: { postId: string; onAdded: (c: { id: string }) => void }) {
+  const [text, setText] = useState('')
+  const [busy, setBusy] = useState(false)
+  return (
+    <div className="mt-2">
+      <div className="flex items-center gap-2">
+        <input value={text} onChange={e=>setText(e.target.value)} className="flex-1 rounded border px-3 py-2" placeholder="Write a comment" />
+        <button disabled={busy || !text.trim()} className="rounded border px-3 py-2" onClick={async () => {
+          setBusy(true)
+          const res = await fetch('/api/board/comments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId, body: text }) })
+          setBusy(false)
+          if (res.ok) { const c = await res.json(); onAdded(c); setText('') }
+        }}>{busy ? 'Posting…' : 'Comment'}</button>
+      </div>
+    </div>
   )
 }

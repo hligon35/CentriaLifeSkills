@@ -41,10 +41,18 @@ npm run dev
 
 Local seed creates three users with the same password:
 
-- therapist@example.com / Password123!
-- parent@example.com / Password123!
-- admin@example.com / Password123!
+Local seed creates additional users (all with Password123!):
 
+- therapist@example.com (THERAPIST)
+- therapist2@example.com (THERAPIST)
+- therapist3@example.com (THERAPIST)
+- parent@example.com (PARENT)
+- parent2@example.com (PARENT)
+- admin@example.com (ADMIN)
+
+Directory API (RBAC):
+- GET /api/directory/staff?search=...&role=THERAPIST|ADMIN
+- GET /api/directory/students?search=...
 Use the Login link in the header or navigate to `/login`.
 - Dockerfile + docker-compose (includes MinIO).
 - GitHub Actions CI for install/lint/typecheck/build. // Insert repo URL

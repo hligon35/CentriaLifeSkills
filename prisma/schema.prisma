@@ -108,6 +108,7 @@ model UrgentMemo {
   targetUserId String?
   createdAt    DateTime @default(now())
   expiresAt    DateTime?
+  receipts     UrgentMemoReceipt[]
 }
 
 // Simple application settings key/value store (strings for SQLite compatibility)
@@ -115,4 +116,42 @@ model AppSetting {
   key       String  @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+// Track when a user has acknowledged/read a memo, so it won't be shown again
+model UrgentMemoReceipt {
+  id        String     @id @default(cuid())
+  memo      UrgentMemo @relation(fields: [memoId], references: [id])
+  memoId    String
+  user      User       @relation(fields: [userId], references: [id])
+  userId    String
+  readAt    DateTime   @default(now())
+  @@unique([memoId, userId])
+}
+
+// Simple audit log for admin actions
+model AuditLog {
+  id        String   @id @default(cuid())
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  details   String?
+  createdAt DateTime @default(now())
+}
+
+// School calendar events
+model Event {
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  location     String?
+  audience     String   // ALL | THERAPIST | PARENT | USER
+  targetUserId String?
+  startAt      DateTime
+  endAt        DateTime
+  createdAt    DateTime @default(now())
+
+  @@index([startAt])
 }

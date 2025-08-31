@@ -6,7 +6,8 @@ type Memo = { id: string; title: string; body: string; active: boolean; audience
 export default function AdminMemosPage() {
   const [memos, setMemos] = useState<Memo[]>([])
   const [draft, setDraft] = useState<Partial<Memo>>({ title: '', body: '', active: true, audience: 'ALL' })
-  function load() { fetch('/api/urgent-memos').then(r => r.json()).then(d => setMemos(d.memos || [])) }
+  // Use ?all=1 to fetch all memos relevant to admins, falling back to current user active memos if not supported
+  function load() { fetch('/api/urgent-memos?all=1').then(r => r.json()).then(d => setMemos(d.memos || [])) }
   useEffect(() => { load() }, [])
   async function save() {
     const res = await fetch('/api/urgent-memos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(draft) })

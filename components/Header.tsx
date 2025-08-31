@@ -36,8 +36,13 @@ export default function Header() {
           <div className="hidden sm:flex gap-4 text-sm items-center">
             <Link href="/">Home</Link>
             <Link href="/chat">Messages</Link>
+            <Link href="/calendar">Calendar</Link>
             {role === 'PARENT' && <Link href="/parent/therapists">Therapists</Link>}
-            {role === 'ADMIN' && <Link href="/admin/settings">Admin</Link>}
+            {role === 'ADMIN' && <>
+              <Link href="/admin/settings">Admin</Link>
+              <Link href="/admin/directory">Directory</Link>
+            </>}
+            <Link href="/search">Search</Link>
             <Link href="/settings">Settings</Link>
             <button onClick={onLogout} className="rounded border px-3 py-1">Logout</button>
           </div>
@@ -56,24 +61,24 @@ function MobileBottomNav({ role, activePath }: { role: string | null; activePath
       return [
         { href: '/', label: 'Home', icon: IconHome(), match: p => p === '/' },
         { href: '/chat', label: 'Messages', icon: IconChat(), match: p => p.startsWith('/chat') },
+        { href: '/calendar', label: 'Calendar', icon: IconBell(), match: p => p.startsWith('/calendar') },
         { href: '/parent/therapists', label: 'Therapists', icon: IconUsers(), match: p => p.startsWith('/parent/therapists') },
-        { href: '/settings', label: 'Settings', icon: IconCog(), match: p => p.startsWith('/settings') },
       ]
     }
-    if (role === 'ADMIN') {
+  if (role === 'ADMIN') {
       return [
         { href: '/', label: 'Home', icon: IconHome(), match: p => p === '/' },
-        { href: '/chat', label: 'Messages', icon: IconChat(), match: p => p.startsWith('/chat') },
-        { href: '/admin/settings', label: 'Admin', icon: IconShield(), match: p => p.startsWith('/admin') },
-        { href: '/settings', label: 'Settings', icon: IconCog(), match: p => p.startsWith('/settings') },
+        { href: '/calendar', label: 'Calendar', icon: IconBell(), match: p => p.startsWith('/calendar') },
+        { href: '/admin/directory', label: 'Directory', icon: IconUsers(), match: p => p.startsWith('/admin/directory') },
+        { href: '/admin/settings', label: 'Admin', icon: IconShield(), match: p => p.startsWith('/admin/settings') },
       ]
     }
     // Default (therapist)
     return [
       { href: '/', label: 'Home', icon: IconHome(), match: p => p === '/' },
       { href: '/chat', label: 'Messages', icon: IconChat(), match: p => p.startsWith('/chat') },
-      { href: '/notifications', label: 'Alerts', icon: IconBell(), match: p => p.startsWith('/notifications') },
-      { href: '/settings', label: 'Settings', icon: IconCog(), match: p => p.startsWith('/settings') },
+      { href: '/calendar', label: 'Calendar', icon: IconBell(), match: p => p.startsWith('/calendar') },
+      { href: '/search', label: 'Search', icon: IconCog(), match: p => p.startsWith('/search') },
     ]
   }, [role])
 

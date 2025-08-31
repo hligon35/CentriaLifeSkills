@@ -27,7 +27,16 @@ export default function GreetingOverlay() {
           ))}
         </div>
         <div className="p-3 border-t flex justify-end rounded-b-lg">
-          <button className="rounded-lg border px-4 py-2" onClick={() => setOpen(false)}>Continue</button>
+          <button
+            className="rounded-lg border px-4 py-2"
+            onClick={async () => {
+              try {
+                const ids = memos.map(m => m.id)
+                if (ids.length) await fetch('/api/urgent-memos/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ memoIds: ids }) })
+              } catch {}
+              setOpen(false)
+            }}
+          >Continue</button>
         </div>
       </div>
     </div>

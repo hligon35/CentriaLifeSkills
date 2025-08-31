@@ -2,10 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 
-// GET: return active memos for current user (by role or targeted), not expired
-export async function GET() {
+// GET: default returns active memos for current user (by role or targeted), not expired
+// Admins can pass ?all=1 to list all memos (no active/expiry filter)
+export async function GET(req: NextRequest) {
   const user = await getSession()
   if (!user) return NextResponse.json({ memos: [] })
+  const { searchParams } = new URL(req.url)
+  const all = searchParams.get('all') === '1'
+  if (all) {
+    if (user.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    const memos = await prisma.urgentMemo.findMany({ orderBy: { createdAt: 'desc' } })
+    return NextResponse.json({ memos })
+  }
   const now = new Date()
   const memos = await prisma.urgentMemo.findMany({
     where: {
@@ -16,7 +24,7 @@ export async function GET() {
         { audience: 'USER', targetUserId: user.sub }
       ],
       AND: [
-        { OR: [ { expiresAt: null }, { expiresAt: { gt: now } } ] }
+  { OR: [ { expiresAt: null }, { expiresAt: { gt: now } } ] }
       ]
     },
     orderBy: { createdAt: 'desc' }
