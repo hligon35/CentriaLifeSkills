@@ -78,14 +78,14 @@ function MobileBottomNav({ role, activePath }: { role: string | null; activePath
   }, [role])
 
   return (
-    <nav className="sm:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-30 w-[92%] max-w-md rounded-full bg-brand-600 text-white shadow-lg">
+  <nav className="sm:hidden fixed bottom-0 inset-x-0 z-50 bg-[#623394] text-white pb-[env(safe-area-inset-bottom)]">
       <ul className="grid grid-cols-4">
         {items.map((it) => {
           const active = it.match(activePath)
           return (
             <li key={it.href} className="list-none">
               <Link aria-label={it.label} href={it.href} className={clsx('flex items-center justify-center py-3', active ? 'opacity-100' : 'opacity-80') }>
-                <span aria-hidden className={clsx('h-8 w-8 rounded-full flex items-center justify-center', active ? 'bg-white/20' : 'bg-transparent')}>{it.icon}</span>
+                <span aria-hidden className={clsx('h-8 w-8 rounded-md flex items-center justify-center', active ? 'bg-white/15' : 'bg-transparent')}>{it.icon}</span>
               </Link>
             </li>
           )
