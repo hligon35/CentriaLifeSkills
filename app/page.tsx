@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useMemo, useState } from 'react'
+import Image from 'next/image'
 import { formatDistanceToNow } from 'date-fns'
 
 type Post = {
@@ -151,7 +152,7 @@ export default function Home() {
             <div className="mt-1 whitespace-pre-wrap text-sm text-gray-800">{p.body}</div>
         {p.imageUrl && (
               <div className="mt-3">
-          <img loading="lazy" src={p.imageUrl} alt="Post image" className="max-h-80 w-full rounded object-cover" />
+          <Image width={1200} height={800} src={p.imageUrl} alt="Post image" className="max-h-80 w-full rounded object-cover" />
               </div>
             )}
             {/* If you support images in body, sanitize before render. */}

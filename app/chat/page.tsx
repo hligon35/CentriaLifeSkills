@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import { compressImage } from '@/lib/compress'
 
 type Message = {
@@ -81,7 +82,7 @@ export default function MessagesPage() {
           return (
             <div key={m.id} className={`flex ${row}`}>
               {!isParent && (
-                <img loading="lazy" src={avatar} alt={s?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start mr-2" />
+                <Image width={28} height={28} src={avatar} alt={s?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start mr-2" />
               )}
               <div className={`rounded-lg px-3 py-2 max-w-[70%] ${bubble}`}>
                 <div className="text-[10px] opacity-80">{s?.name || s?.email} • {new Date(m.createdAt).toLocaleString()}</div>
@@ -90,7 +91,7 @@ export default function MessagesPage() {
                 <div className="mt-1 text-[10px] opacity-80">{m.readAt ? 'Read' : 'Sent'}</div>
               </div>
               {isParent && (
-                <img loading="lazy" src={avatar} alt={s?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start ml-2" />
+                <Image width={28} height={28} src={avatar} alt={s?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start ml-2" />
               )}
             </div>
           )
@@ -134,5 +135,5 @@ function MediaViewer({ url, type }: { url: string; type: string }) {
   }, [url])
   if (!signed) return <div className="text-xs text-gray-500">Loading media…</div>
   if (type.startsWith('video/')) return <video controls className="mt-2 max-h-64" src={signed} />
-  return <img loading="lazy" className="mt-2 max-h-64 rounded" src={signed} alt="attachment" />
+  return <Image width={600} height={400} className="mt-2 max-h-64 rounded" src={signed} alt="attachment" />
 }

@@ -1,6 +1,7 @@
 import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
+import Image from 'next/image'
 
 export default async function ParentTherapistsPage() {
   const user = await getSession()
@@ -17,12 +18,17 @@ export default async function ParentTherapistsPage() {
 
   return (
   <main className="mx-auto max-w-3xl p-3 sm:p-4">
-  <h1 className="text-xl font-semibold mb-4 text-center sm:text-left">Your Child's Therapists</h1>
+  <h1 className="text-xl font-semibold mb-4 text-center sm:text-left">Your Child&apos;s Therapists</h1>
       {students.length === 0 && (
         <div className="rounded border bg-white p-4 text-sm text-gray-600">No assigned therapists found.</div>
       )}
       <div className="space-y-6">
-        {students.map(stu => (
+        {students.map((stu: {
+          id: string;
+          name: string;
+          amTherapist: { id: string; name: string | null; email: string; photoUrl: string | null; role?: string | null } | null;
+          pmTherapist: { id: string; name: string | null; email: string; photoUrl: string | null; role?: string | null } | null;
+        }) => (
           <section key={stu.id} className="rounded border bg-white p-4">
             <div className="mb-3 font-medium">Student: {stu.name}</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -46,7 +52,7 @@ function TherapistCard({ t, slotLabel }: { t: { id: string; name: string | null;
   const avatar = t.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(initials)}`
   return (
     <div className="rounded-lg border p-4 flex gap-3 items-start">
-  <img loading="lazy" src={avatar} alt={t.name || 'Therapist'} className="h-14 w-14 rounded-full border" />
+  <Image width={56} height={56} src={avatar} alt={t.name || 'Therapist'} className="h-14 w-14 rounded-full border" />
       <div className="min-w-0">
         <div className="font-medium truncate">{t.name || 'Therapist'}</div>
         <div className="text-xs text-gray-600">{slotLabel}</div>

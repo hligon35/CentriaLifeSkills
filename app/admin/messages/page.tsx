@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 
 type Student = { id: string; name: string; parent?: Participant; amTherapist?: Participant; pmTherapist?: Participant }
 type Message = { id: string; senderId: string; receiverId: string; content: string; createdAt: string }
@@ -31,9 +32,33 @@ export default function AdminMessagesPage() {
             <li key={s.id}>
               <button onClick={() => setSelected(s.id)} className={`w-full text-left px-3 py-2 rounded-lg border flex items-center gap-2 ${selected === s.id ? 'bg-brand-50 border-brand-200' : 'hover:bg-gray-50'}`}>
                 <div className="flex items-center gap-1">
-                  {s.parent && <img className="h-6 w-6 rounded-full border" src={s.parent.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent((s.parent.name||s.parent.email||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}`} alt={s.parent.name || 'Parent'} />}
-                  {s.amTherapist && <img className="h-6 w-6 rounded-full border" src={s.amTherapist.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent((s.amTherapist.name||s.amTherapist.email||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}`} alt={s.amTherapist.name || 'AM Therapist'} />}
-                  {s.pmTherapist && <img className="h-6 w-6 rounded-full border" src={s.pmTherapist.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent((s.pmTherapist.name||s.pmTherapist.email||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}`} alt={s.pmTherapist.name || 'PM Therapist'} />}
+                  {s.parent && (
+                    <Image
+                      width={24}
+                      height={24}
+                      className="h-6 w-6 rounded-full border"
+                      src={s.parent.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent((s.parent.name||s.parent.email||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}`}
+                      alt={s.parent.name || 'Parent'}
+                    />
+                  )}
+                  {s.amTherapist && (
+                    <Image
+                      width={24}
+                      height={24}
+                      className="h-6 w-6 rounded-full border"
+                      src={s.amTherapist.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent((s.amTherapist.name||s.amTherapist.email||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}`}
+                      alt={s.amTherapist.name || 'AM Therapist'}
+                    />
+                  )}
+                  {s.pmTherapist && (
+                    <Image
+                      width={24}
+                      height={24}
+                      className="h-6 w-6 rounded-full border"
+                      src={s.pmTherapist.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent((s.pmTherapist.name||s.pmTherapist.email||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}`}
+                      alt={s.pmTherapist.name || 'PM Therapist'}
+                    />
+                  )}
                 </div>
                 <span className="truncate">{s.name}</span>
               </button>
@@ -67,14 +92,14 @@ export default function AdminMessagesPage() {
                     return (
                       <div key={m.id} className={`flex ${rowClasses}`}>
                         {!isParent && (
-                          <img loading="lazy" src={avatar} alt={sender?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start mr-2" />
+                          <Image width={28} height={28} src={avatar} alt={sender?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start mr-2" />
                         )}
                         <div className={`rounded-lg px-3 py-2 max-w-[70%] ${bubbleColor}`}>
                           <div className="text-[10px] opacity-80">{sender?.name || sender?.email} • {new Date(m.createdAt).toLocaleString()}</div>
                           <div className="whitespace-pre-wrap text-sm">{m.content}</div>
                         </div>
                         {isParent && (
-                          <img loading="lazy" src={avatar} alt={sender?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start ml-2" />
+                          <Image width={28} height={28} src={avatar} alt={sender?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start ml-2" />
                         )}
                       </div>
                     )

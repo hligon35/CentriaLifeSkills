@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { formatDistanceToNow } from 'date-fns'
 
 type Post = { id: string; title: string; body: string; imageUrl?: string; createdAt: string; comments: { id: string; body: string; createdAt: string }[] }
@@ -41,7 +42,7 @@ export default function BoardPage() {
             <div className="text-sm text-gray-700 whitespace-pre-wrap">{p.body}</div>
       {p.imageUrl && (
               <div className="mt-3">
-        <img loading="lazy" src={p.imageUrl} alt="Post image" className="max-h-80 w-full rounded object-cover" />
+        <Image width={1200} height={800} src={p.imageUrl} alt="Post image" className="max-h-80 w-full rounded object-cover" />
               </div>
             )}
             <div className="mt-2 text-xs text-gray-500">{formatDistanceToNow(new Date(p.createdAt), { addSuffix: true })}</div>
