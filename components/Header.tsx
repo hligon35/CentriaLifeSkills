@@ -15,43 +15,7 @@ export default function Header() {
   useEffect(() => {
     fetch('/api/auth/me').then(r => r.json()).then(j => setRole(j?.user?.role || null)).catch(() => setRole(null))
   }, [])
-  return (
-    <header className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b">
-      <nav className="relative mx-auto max-w-5xl p-3">
-        <div className="flex items-center justify-between">
-          <div className="font-semibold mx-auto sm:mx-0">{/* Insert logo and school name here */}BuddyBoard</div>
-          {/* Mobile logout (top-right) */}
-          <button
-            aria-label="Logout"
-            onClick={onLogout}
-            className="sm:hidden absolute right-3 top-3 rounded border px-3 py-1"
-          >
-            {/* Power icon */}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-              <path d="M12 2.25a.75.75 0 0 1 .75.75v7.5a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75Z"/>
-              <path d="M6.62 5.255a.75.75 0 1 1 1.06 1.061 7 7 0 1 0 8.64 0 .75.75 0 1 1 1.06-1.06 8.5 8.5 0 1 1-10.76-.001Z"/>
-            </svg>
-          </button>
-          {/* Desktop nav */}
-          <div className="hidden sm:flex gap-4 text-sm items-center">
-            <Link href="/">Home</Link>
-            <Link href="/chat">Messages</Link>
-            <Link href="/calendar">Calendar</Link>
-            {role === 'PARENT' && <Link href="/parent/therapists">Therapists</Link>}
-            {role === 'ADMIN' && <>
-              <Link href="/admin/settings">Admin</Link>
-              <Link href="/admin/directory">Directory</Link>
-            </>}
-            <Link href="/search">Search</Link>
-            <Link href="/settings">Settings</Link>
-            <button onClick={onLogout} className="rounded border px-3 py-1">Logout</button>
-          </div>
-        </div>
-        {/* Mobile bottom nav */}
-        <MobileBottomNav role={role} activePath={pathname || '/'} />
-      </nav>
-    </header>
-  )
+  return <MobileBottomNav role={role} activePath={pathname || '/'} />
 }
 
 function MobileBottomNav({ role, activePath }: { role: string | null; activePath: string }) {
@@ -83,7 +47,7 @@ function MobileBottomNav({ role, activePath }: { role: string | null; activePath
   }, [role])
 
   return (
-  <nav className="sm:hidden fixed bottom-0 inset-x-0 z-50 bg-[#623394] text-white pb-[env(safe-area-inset-bottom)]">
+  <nav className="fixed bottom-0 inset-x-0 z-50 bg-[#623394] text-white pb-[env(safe-area-inset-bottom)]">
       <ul className="grid grid-cols-4">
         {items.map((it) => {
           const active = it.match(activePath)
