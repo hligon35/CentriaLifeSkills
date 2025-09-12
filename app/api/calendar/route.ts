@@ -36,7 +36,8 @@ export async function POST(req: NextRequest) {
     description: json.description ? String(json.description).slice(0, 2000) : null,
     audience: String(json.audience || 'ALL'),
     startAt: new Date(json.startAt),
-    endAt: json.endAt ? new Date(json.endAt) : null,
+    // endAt is non-nullable in schema, so if not provided, default to startAt
+    endAt: new Date(json.endAt ? json.endAt : json.startAt),
     location: json.location ? String(json.location).slice(0, 200) : null,
   } })
   return NextResponse.json(evt, { status: 201 })
@@ -51,7 +52,7 @@ export async function PUT(req: NextRequest) {
     description: json.description ?? null,
     audience: json.audience,
     startAt: json.startAt ? new Date(json.startAt) : undefined,
-    endAt: json.endAt ? new Date(json.endAt) : null,
+    endAt: json.endAt ? new Date(json.endAt) : (json.startAt ? new Date(json.startAt) : undefined),
     location: json.location ?? null,
   } })
   return NextResponse.json(evt)

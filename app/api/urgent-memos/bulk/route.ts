@@ -13,13 +13,13 @@ export async function POST(req: NextRequest) {
   let list = Array.isArray(body.userIds) ? Array.from(new Set(body.userIds.filter(Boolean))) : []
   if (list.length === 0 && body.audienceRole) {
     const users = await prisma.user.findMany({ where: { role: body.audienceRole } })
-    list = users.map(u => u.id)
+    list = users.map((u: { id: string }) => u.id)
   }
   if (!title || !msg) return NextResponse.json({ error: 'Missing title or body' }, { status: 400 })
   if (list.length === 0) return NextResponse.json({ error: 'No userIds' }, { status: 400 })
 
   await prisma.urgentMemo.createMany({
-    data: list.map(uid => ({ title, body: msg, active: body.active ?? true, audience: 'USER', targetUserId: uid, expiresAt })),
+    data: list.map((uid: string) => ({ title, body: msg, active: body.active ?? true, audience: 'USER', targetUserId: uid, expiresAt })),
   })
   await prisma.auditLog.create({ data: { userId: me.sub, action: 'MEMO_BULK_CREATE', entity: 'UrgentMemo', details: JSON.stringify({ count: list.length, audienceRole: body.audienceRole || null }) } })
   return NextResponse.json({ ok: true, created: list.length })

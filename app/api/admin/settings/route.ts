@@ -6,7 +6,8 @@ export async function GET() {
   const user = await getSession()
   if (!user || user.role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const rows = await prisma.appSetting.findMany({})
-  const settings = Object.fromEntries(rows.map(r => [r.key, r.value]))
+  // Map rows to key/value entries with explicit typing to avoid implicit any
+  const settings = Object.fromEntries(rows.map((r: { key: string; value: string }) => [r.key, r.value]))
   return NextResponse.json(settings)
 }
 
