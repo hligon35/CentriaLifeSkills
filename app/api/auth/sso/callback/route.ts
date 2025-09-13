@@ -6,6 +6,12 @@ import { signJwt } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code')
+  const rawState = req.nextUrl.searchParams.get('state') || ''
+  let returnTo: string | null = null
+  if (rawState.includes('|')) {
+    const parts = rawState.split('|')
+    try { returnTo = decodeURIComponent(parts[1] || '') } catch {}
+  }
   if (!code) return NextResponse.json({ error: 'Missing code' }, { status: 400 })
   try {
     const tokens = await exchangeCodeForTokens(code)
@@ -24,7 +30,8 @@ export async function GET(req: NextRequest) {
     const token = await signJwt({ sub: user.id, role: user.role as any, name: user.name || undefined })
     const isProd = process.env.NODE_ENV === 'production'
     cookies().set('token', token, { httpOnly: true, secure: isProd, sameSite: 'strict', path: '/' })
-    return NextResponse.redirect(new URL('/', req.url))
+    const dest = new URL(returnTo || '/', req.url)
+    return NextResponse.redirect(dest)
   } catch (e) {
     return NextResponse.json({ error: 'SSO failed' }, { status: 400 })
   }

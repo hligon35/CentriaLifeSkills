@@ -7,7 +7,24 @@ export default function GreetingOverlay() {
   const [open, setOpen] = useState(true)
   const [memos, setMemos] = useState<Memo[]>([])
   useEffect(() => {
-    fetch('/api/urgent-memos').then(r => r.json()).then(d => setMemos(d.memos || []))
+    let cancelled = false
+    ;(async () => {
+      try {
+        const r = await fetch('/api/urgent-memos', { cache: 'no-store' })
+        if (!r.ok) {
+          // Non-OK: treat as no memos
+          if (!cancelled) setMemos([])
+          return
+        }
+        // Some environments can return empty body; guard JSON parse
+        const text = await r.text()
+        const d = text ? JSON.parse(text) : { memos: [] }
+        if (!cancelled) setMemos(Array.isArray(d?.memos) ? d.memos : [])
+      } catch {
+        if (!cancelled) setMemos([])
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
   if (!open) return null
   return (

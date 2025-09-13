@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { compressImage } from '@/lib/compress'
 
@@ -23,24 +23,38 @@ export default function MessagesPage() {
   const [cursor, setCursor] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(false)
   const endRef = useRef<HTMLDivElement>(null)
+  const loadingRef = useRef(false)
 
-  useEffect(() => {
-    loadMore()
-  }, [])
-
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
-
-  async function loadMore() {
-    if (loading) return
+  const loadMore = useCallback(async () => {
+    if (loadingRef.current) return
+    loadingRef.current = true
     setLoading(true)
     const url = new URL('/api/messages', window.location.origin)
     if (cursor) url.searchParams.set('cursor', cursor)
-    const res = await fetch(url.toString())
-    const data = await res.json()
-  setMessages(prev => [...prev, ...data.items])
-    setCursor(data.nextCursor)
+    try {
+      const res = await fetch(url.toString(), { cache: 'no-store' })
+      if (!res.ok) {
+        setLoading(false)
+        loadingRef.current = false
+        return
+      }
+      const text = await res.text()
+      const data = text ? JSON.parse(text) : { items: [], nextCursor: undefined }
+      const items = Array.isArray(data?.items) ? data.items : []
+      setMessages(prev => [...prev, ...items])
+      setCursor(typeof data?.nextCursor === 'string' ? data.nextCursor : undefined)
+    } catch {
+      // Network/parse error -> no-op but keep UI stable
+    }
     setLoading(false)
-  }
+    loadingRef.current = false
+  }, [cursor])
+
+  useEffect(() => {
+    loadMore()
+  }, [loadMore])
+
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
   async function send() {
     if (!text.trim()) return
@@ -53,12 +67,12 @@ export default function MessagesPage() {
       const up = await fetch('/api/media/upload', { method: 'POST', body: form })
       if (up.ok) { mediaUrl = (await up.json()).url }
     }
-  // Optional E2EE: import key and encrypt here, then send ciphertext and iv
-  // TODO: Select a conversation; for now, send to the most recent counterpart if any
-  const last = messages[0]
-  const counterpartId = last ? (last.senderId /* me? */) : undefined
-  if (!counterpartId) return
-  const res = await fetch('/api/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ receiverId: counterpartId, content: text, mediaUrl }) })
+    // Optional E2EE: import key and encrypt here, then send ciphertext and iv
+    // TODO: Select a conversation; for now, send to the most recent counterpart if any
+    const last = messages[0]
+    const counterpartId = last ? (last.senderId /* me? */) : undefined
+    if (!counterpartId) return
+    const res = await fetch('/api/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ receiverId: counterpartId, content: text, mediaUrl }) })
     if (res.ok) {
       setText('')
       setMedia(null)

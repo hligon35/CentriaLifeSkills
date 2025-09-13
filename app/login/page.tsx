@@ -27,12 +27,14 @@ export default function LoginPage() {
   async function handleSSO() {
     setError(null)
     try {
-      const chk = await fetch('/api/auth/sso/login?check=1').then(r => r.json())
+      const rt = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('returnTo') || '/') : '/'
+      const chk = await fetch(`/api/auth/sso/login?check=1`).then(r => r.json())
       if (!chk?.configured) {
         setError('SSO is not configured')
         return
       }
-      window.location.href = chk.url
+      // Redirect via our API so it encodes returnTo in state
+      window.location.href = `/api/auth/sso/login?returnTo=${encodeURIComponent(rt)}`
     } catch {
       setError('SSO failed to start')
     }
@@ -41,7 +43,12 @@ export default function LoginPage() {
   async function handleDevSSO(role: 'THERAPIST' | 'PARENT') {
     const res = await fetch('/api/auth/sso/dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role }) })
     if (res.ok) {
-      window.location.href = role === 'THERAPIST' ? '/therapist' : '/parent'
+      const rt = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('returnTo') || '') : ''
+      if (rt) {
+        window.location.href = rt
+      } else {
+        window.location.href = role === 'THERAPIST' ? '/therapist' : '/parent'
+      }
     }
   }
 
@@ -63,7 +70,7 @@ export default function LoginPage() {
           <button
             type="button"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
-            aria-pressed={showPassword}
+            aria-pressed={showPassword ? 'true' : 'false'}
             onClick={() => setShowPassword(p => !p)}
             className="absolute inset-y-0 right-2 my-auto h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 focus:outline-none focus-visible:ring"
           >
@@ -89,6 +96,7 @@ export default function LoginPage() {
         <div className="flex gap-2">
           <button onClick={() => handleDevSSO('THERAPIST')} className="flex-1 rounded-lg border px-3 py-2">Dev SSO Therapist</button>
           <button onClick={() => handleDevSSO('PARENT')} className="flex-1 rounded-lg border px-3 py-2">Dev SSO Parent</button>
+          <button onClick={() => fetch('/api/auth/sso/dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role: 'ADMIN' }) }).then(res => { if (res.ok) { const rt = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('returnTo') || '/admin/messages') : '/admin/messages'; window.location.href = rt } })} className="hidden sm:block flex-1 rounded-lg border px-3 py-2">Dev SSO Admin</button>
         </div>
       </div>
       <p className="mt-3 text-xs text-gray-500">Test users: therapist@example.com / parent@example.com / admin@example.com with Password123!</p>

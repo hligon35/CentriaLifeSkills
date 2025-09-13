@@ -15,15 +15,24 @@ export async function GET(req: NextRequest) {
     start = new Date(y, m - 1, 1)
     end = new Date(y, m, 1)
   }
-  const where: any = {
-    AND: [
-      start ? { startAt: { gte: start } } : {},
-      end ? { startAt: { lt: end } } : {},
-      { OR: [ { audience: 'ALL' }, { audience: user.role } ] }
-    ]
+  const isProd = String(process.env.NODE_ENV) === 'production'
+  try {
+    const where: any = {
+      AND: [
+        start ? { startAt: { gte: start } } : {},
+        end ? { startAt: { lt: end } } : {},
+        { OR: [ { audience: 'ALL' }, { audience: user.role } ] }
+      ]
+    }
+    const events = await prisma.event.findMany({ where, orderBy: { startAt: 'asc' } })
+    return NextResponse.json({ events })
+  } catch (e) {
+    if (!isProd) {
+      // Simple dev fallback: no events instead of 500
+      return NextResponse.json({ events: [] })
+    }
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
-  const events = await prisma.event.findMany({ where, orderBy: { startAt: 'asc' } })
-  return NextResponse.json({ events })
 }
 
 // Admin create/update/delete

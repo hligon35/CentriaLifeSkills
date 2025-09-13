@@ -6,15 +6,27 @@ import Image from 'next/image'
 export default async function ParentTherapistsPage() {
   const user = await getSession()
   if (!user || user.role !== 'PARENT') redirect('/login')
-  const students = await prisma.student.findMany({
-    where: { parentId: user.sub },
-    select: {
-      id: true,
-      name: true,
-      amTherapist: { select: { id: true, name: true, email: true, photoUrl: true, role: true } },
-      pmTherapist: { select: { id: true, name: true, email: true, photoUrl: true, role: true } }
-    }
-  })
+  let students: Array<{
+    id: string;
+    name: string;
+    amTherapist: { id: string; name: string | null; email: string; photoUrl: string | null; role?: string | null } | null;
+    pmTherapist: { id: string; name: string | null; email: string; photoUrl: string | null; role?: string | null } | null;
+  }> = []
+  try {
+    students = await prisma.student.findMany({
+      where: { parentId: user.sub },
+      select: {
+        id: true,
+        name: true,
+        amTherapist: { select: { id: true, name: true, email: true, photoUrl: true, role: true } },
+        pmTherapist: { select: { id: true, name: true, email: true, photoUrl: true, role: true } }
+      }
+    })
+  } catch (e) {
+    if (String(process.env.NODE_ENV) === 'production') throw e
+    // In dev, show an empty state instead of crashing if DB isn't ready
+    students = []
+  }
 
   return (
   <main className="mx-auto max-w-3xl p-3 sm:p-4">

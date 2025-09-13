@@ -20,15 +20,21 @@ export async function middleware(req: NextRequest) {
   const path = url.pathname
   const protectedPrefixes = ['/therapist', '/parent', '/chat', '/board', '/notifications', '/settings', '/admin']
   const isProtected = protectedPrefixes.some(p => path.startsWith(p))
+  const makeLoginRedirect = () => {
+    const loginUrl = new URL('/login', req.url)
+    const returnTo = path + (url.search || '')
+    loginUrl.searchParams.set('returnTo', returnTo)
+    return NextResponse.redirect(loginUrl)
+  }
   if (isProtected) {
-    if (!token) return NextResponse.redirect(new URL('/login', req.url))
+    if (!token) return makeLoginRedirect()
     try {
   const user = token ? await verifyJwt(token) : null
-  if (path.startsWith('/therapist') && user?.role !== 'THERAPIST') return NextResponse.redirect(new URL('/login', req.url))
-  if (path.startsWith('/parent') && user?.role !== 'PARENT') return NextResponse.redirect(new URL('/login', req.url))
-  if (path.startsWith('/admin') && user?.role !== 'ADMIN') return NextResponse.redirect(new URL('/login', req.url))
+  if (path.startsWith('/therapist') && user?.role !== 'THERAPIST') return makeLoginRedirect()
+  if (path.startsWith('/parent') && user?.role !== 'PARENT') return makeLoginRedirect()
+  if (path.startsWith('/admin') && user?.role !== 'ADMIN') return makeLoginRedirect()
     } catch {
-      return NextResponse.redirect(new URL('/login', req.url))
+      return makeLoginRedirect()
     }
   }
 
@@ -41,5 +47,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/:path*', '/therapist/:path*', '/parent/:path*', '/chat', '/board', '/notifications', '/settings']
+  matcher: ['/api/:path*', '/therapist/:path*', '/parent/:path*', '/chat', '/board', '/notifications', '/settings', '/admin/:path*']
 }

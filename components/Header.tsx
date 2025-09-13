@@ -15,10 +15,10 @@ export default function Header() {
   useEffect(() => {
     fetch('/api/auth/me').then(r => r.json()).then(j => setRole(j?.user?.role || null)).catch(() => setRole(null))
   }, [])
-  return <MobileBottomNav role={role} activePath={pathname || '/'} />
+  return <MobileBottomNav role={role} activePath={pathname || '/'} onLogout={onLogout} />
 }
 
-function MobileBottomNav({ role, activePath }: { role: string | null; activePath: string }) {
+function MobileBottomNav({ role, activePath, onLogout }: { role: string | null; activePath: string; onLogout: () => void }) {
   // Choose 4 nav items based on role
   const items = useMemo((): Array<{ href: string; label: string; icon: JSX.Element; match: (p: string) => boolean }> => {
     if (role === 'PARENT') {
@@ -47,8 +47,8 @@ function MobileBottomNav({ role, activePath }: { role: string | null; activePath
   }, [role])
 
   return (
-  <nav className="fixed bottom-0 inset-x-0 z-50 bg-[#623394] text-white pb-[env(safe-area-inset-bottom)]">
-      <ul className="grid grid-cols-4">
+  <nav className="fixed bottom-0 inset-x-0 z-50 bg-[#623394] text-white pb-[env(safe-area-inset-bottom)] relative">
+  <ul className="grid grid-cols-4 pr-12">
         {items.map((it) => {
           const active = it.match(activePath)
           return (
@@ -60,6 +60,15 @@ function MobileBottomNav({ role, activePath }: { role: string | null; activePath
           )
         })}
       </ul>
+      <button
+        type="button"
+        aria-label="Log out"
+        title="Log out"
+        onClick={onLogout}
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md hover:bg-white/15 focus:outline-none focus-visible:ring"
+      >
+        {IconPower()}
+      </button>
     </nav>
   )
 }
@@ -106,6 +115,15 @@ function IconBell() {
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
       <path d="M12 2.25a6.75 6.75 0 0 0-6.75 6.75v3.09l-1.31 2.62A1.5 1.5 0 0 0 5.25 16.5h13.5a1.5 1.5 0 0 0 1.31-2.28l-1.31-2.62V9A6.75 6.75 0 0 0 12 2.25Z"/>
       <path d="M9.75 18.75a2.25 2.25 0 1 0 4.5 0h-4.5Z"/>
+    </svg>
+  )
+}
+
+function IconPower() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
+      <path d="M11.25 3.75a.75.75 0 0 1 1.5 0v7.5a.75.75 0 0 1-1.5 0v-7.5Z" />
+      <path d="M5.636 5.636a8.25 8.25 0 1 0 12.728 0 .75.75 0 1 0-1.06 1.061 6.75 6.75 0 1 1-10.607 0 .75.75 0 0 0-1.06-1.06Z" />
     </svg>
   )
 }
