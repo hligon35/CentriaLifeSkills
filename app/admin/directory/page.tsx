@@ -39,6 +39,7 @@ export default function AdminDirectoryPage() {
   const [memoBody, setMemoBody] = useState('')
   const [memoExpiresAt, setMemoExpiresAt] = useState('') // ISO string or empty
   const [memoBusy, setMemoBusy] = useState(false)
+  const [openStudents, setOpenStudents] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     fetch(`/api/directory/staff?search=${encodeURIComponent(sQuery)}`)
@@ -99,10 +100,19 @@ export default function AdminDirectoryPage() {
       <ul className="space-y-2">
             {students.map(s => (
         <li key={s.id} className="border rounded p-3 bg-white">
-                <div className="text-sm font-medium">{s.name}</div>
-                <div className="flex items-center gap-2 mt-1">
+                <button
+                  className="w-full text-left text-sm font-medium flex items-center justify-between"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setOpenStudents(prev => ({ ...prev, [s.id]: !prev[s.id] }))
+                  }}
+                >
+                  {s.name}
+                  <span className="text-xs text-gray-500">Details</span>
+                </button>
+                <div className={`flex flex-wrap items-center gap-2 mt-2 w-fit ${openStudents[s.id] ? '' : 'hidden'}`}>
                   {s.parent && (
-                    <div className="flex items-center gap-1">
+                    <div className="inline-flex items-center gap-1 w-fit">
                       <input aria-label={`Select parent ${s.parent?.name || ''}`} type="checkbox" className="mt-0.5" checked={selectedUserIds.includes((s.parent as any).id)} onChange={e => setSelectedUserIds(prev => e.target.checked ? [...new Set([...prev, (s.parent as any).id])] : prev.filter(x => x !== (s.parent as any).id))} />
                       <Badge avatar={s.parent.photoUrl} label={s.parent.name||'Parent'} />
                       <button
@@ -113,7 +123,7 @@ export default function AdminDirectoryPage() {
                     </div>
                   )}
                   {s.amTherapist && (
-                    <div className="flex items-center gap-1">
+                    <div className="inline-flex items-center gap-1 w-fit">
                       <input aria-label={`Select AM therapist ${s.amTherapist?.name || ''}`} type="checkbox" className="mt-0.5" checked={selectedUserIds.includes((s.amTherapist as any).id)} onChange={e => setSelectedUserIds(prev => e.target.checked ? [...new Set([...prev, (s.amTherapist as any).id])] : prev.filter(x => x !== (s.amTherapist as any).id))} />
                       <Badge avatar={s.amTherapist.photoUrl} label={s.amTherapist.name||'AM Therapist'} />
                       <button
@@ -124,7 +134,7 @@ export default function AdminDirectoryPage() {
                     </div>
                   )}
                   {s.pmTherapist && (
-                    <div className="flex items-center gap-1">
+                    <div className="inline-flex items-center gap-1 w-fit">
                       <input aria-label={`Select PM therapist ${s.pmTherapist?.name || ''}`} type="checkbox" className="mt-0.5" checked={selectedUserIds.includes((s.pmTherapist as any).id)} onChange={e => setSelectedUserIds(prev => e.target.checked ? [...new Set([...prev, (s.pmTherapist as any).id])] : prev.filter(x => x !== (s.pmTherapist as any).id))} />
                       <Badge avatar={s.pmTherapist.photoUrl} label={s.pmTherapist.name||'PM Therapist'} />
                       <button

@@ -43,6 +43,8 @@ model User {
   dailyLogsAuthored     DailyLog[]
   progressReportsAuthored ProgressReport[]
   profileChangeRequests ProfileChangeRequest[]
+  workShifts            WorkShift[]
+  clockEntries          ClockEntry[]
 }
 
 model Message {
@@ -78,12 +80,17 @@ model Post {
   title     String
   body      String // can be markdown; sanitize on render
   imageUrl  String?
+  fileUrl   String?
   createdAt DateTime   @default(now())
   comments  Comment[]
   likes     PostLike[]
   pinned    Boolean    @default(false)
   category  String?    // e.g., ANNOUNCEMENT | EVENT | NEWSLETTER
   tags      String?    // comma-separated for SQLite
+  published Boolean    @default(true)
+  publishAt DateTime?
+
+  @@index([publishAt])
 }
 
 model Comment {
@@ -137,6 +144,7 @@ model Student {
   dailyLogs     DailyLog[]
   progress      ProgressReport[]
   appointments  Appointment[]
+  workShifts    WorkShift[]
 }
 
 // Admin-configured urgent memos displayed to users on login
@@ -312,4 +320,30 @@ model ProfileChangeRequest {
   reviewedAt DateTime?
 
   @@index([userId, status])
+}
+
+// Therapist work schedules (planned shifts)
+model WorkShift {
+  id          String   @id @default(cuid())
+  therapist   User     @relation(fields: [therapistId], references: [id])
+  therapistId String
+  student     Student? @relation(fields: [studentId], references: [id])
+  studentId   String?
+  startAt     DateTime
+  endAt       DateTime
+  status      String   @default("SCHEDULED") // SCHEDULED | COMPLETED | MISSED | CANCELLED
+  createdAt   DateTime @default(now())
+
+  @@index([therapistId, startAt])
+}
+
+// Therapist clock-in/out entries
+model ClockEntry {
+  id          String   @id @default(cuid())
+  therapist   User     @relation(fields: [therapistId], references: [id])
+  therapistId String
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+
+  @@index([therapistId, startedAt])
 }

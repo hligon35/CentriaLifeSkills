@@ -63,42 +63,52 @@ export default function SettingsPage() {
       <h1 className="text-xl font-semibold mb-4">Settings</h1>
       {error && <div className="mb-3 rounded border border-red-200 bg-red-50 p-2 text-sm text-red-700">{error}</div>}
       {msg && <div className="mb-3 rounded border border-green-200 bg-green-50 p-2 text-sm text-green-700">{msg}</div>}
-      <div className="space-y-6">
-        <section className="rounded border bg-white p-4">
-          <div className="font-medium mb-2">Your Profile</div>
-          <div className="grid gap-2">
-            <label className="text-sm">Name
-              <input value={name} onChange={e => setName(e.target.value)} className="mt-1 w-full rounded border px-3 py-2" />
-            </label>
-            <label className="text-sm">Email
-              <input value={email} onChange={e => setEmail(e.target.value)} className="mt-1 w-full rounded border px-3 py-2" />
-            </label>
-            <label className="text-sm">Language
-              <select className="mt-1 w-full rounded border px-2 py-2" value={language} onChange={e => setLanguage(e.target.value)} disabled={false}>
-                <option value="en">English</option>
-                <option value="es">Español</option>
-                <option value="fr">Français</option>
-              </select>
-            </label>
-            <div className="text-xs text-gray-600">{me?.role === 'THERAPIST' ? 'Saving will submit a change request for admin review.' : 'Saving will update your profile immediately.'}</div>
-            <div className="flex gap-2">
-              <button onClick={saveProfile} disabled={busy} className="rounded border px-3 py-2 text-sm">{me?.role === 'THERAPIST' ? 'Submit change request' : 'Save profile'}</button>
+      <div className="space-y-4">
+        <details className="rounded border bg-white">
+          <summary className="cursor-pointer list-none px-4 py-3 font-medium flex items-center justify-between">
+            <span>Your Profile</span>
+            <span aria-hidden className="ml-2 select-none">▾</span>
+          </summary>
+          <div className="border-t px-4 py-4">
+            <div className="grid gap-2">
+              <label className="text-sm">Name
+                <input value={name} onChange={e => setName(e.target.value)} className="mt-1 w-full rounded border px-3 py-2" />
+              </label>
+              <label className="text-sm">Email
+                <input value={email} onChange={e => setEmail(e.target.value)} className="mt-1 w-full rounded border px-3 py-2" />
+              </label>
+              <label className="text-sm">Language
+                <select className="mt-1 w-full rounded border px-2 py-2" value={language} onChange={e => setLanguage(e.target.value)} disabled={false}>
+                  <option value="en">English</option>
+                  <option value="es">Español</option>
+                  <option value="fr">Français</option>
+                </select>
+              </label>
+              <div className="text-xs text-gray-600">{me?.role === 'THERAPIST' ? 'Saving will submit a change request for admin review.' : 'Saving will update your profile immediately.'}</div>
+              <div className="flex gap-2">
+                <button onClick={saveProfile} disabled={busy} className="rounded border px-3 py-2 text-sm">{me?.role === 'THERAPIST' ? 'Submit change request' : 'Save profile'}</button>
+              </div>
             </div>
           </div>
-        </section>
+        </details>
 
-        <section className="rounded border bg-white p-4">
-          <div className="font-medium mb-2">Change Password</div>
-          <label className="text-sm">Current Password
-            <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="mt-1 w-full rounded border px-3 py-2" />
-          </label>
-          <label className="text-sm mt-2">New Password
-            <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="mt-1 w-full rounded border px-3 py-2" />
-          </label>
-          <div className="mt-2">
-            <button onClick={changePassword} disabled={busy} className="rounded border px-3 py-2 text-sm">Update password</button>
+        <details className="rounded border bg-white">
+          <summary className="cursor-pointer list-none px-4 py-3 font-medium flex items-center justify-between">
+            <span>Change Password</span>
+            <span aria-hidden className="ml-2 select-none">▾</span>
+          </summary>
+          <div className="border-t px-4 py-4">
+            <label className="text-sm">Current Password
+              <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="mt-1 w-full rounded border px-3 py-2" />
+            </label>
+            <label className="text-sm mt-2">New Password
+              <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="mt-1 w-full rounded border px-3 py-2" />
+            </label>
+            <div className="mt-2">
+              <button onClick={changePassword} disabled={busy} className="rounded border px-3 py-2 text-sm">Update password</button>
+            </div>
           </div>
-        </section>
+        </details>
       </div>
     </main>
   )

@@ -11,10 +11,12 @@ type Post = {
   comments: { id: string }[]
   likes: { userId: string }[]
   imageUrl?: string
+  fileUrl?: string
 }
 
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([])
+  const [role, setRole] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const [liking, setLiking] = useState<string | null>(null)
@@ -24,7 +26,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [imageUrl, setImageUrl] = useState('')
 
-  useEffect(() => { refresh() }, [])
+  useEffect(() => { refresh(); fetch('/api/auth/me').then(r=>r.json()).then(j=>setRole(j?.user?.role||null)).catch(()=>setRole(null)) }, [])
 
   async function refresh() {
   setLoading(true)
@@ -90,6 +92,7 @@ export default function Home() {
 
   return (
     <main className="mx-auto max-w-3xl p-4">
+      {role === 'ADMIN' && <AdminTherapistStatus />}
       <div className="mb-4 flex flex-col items-center sm:flex-row sm:items-center sm:justify-between gap-2">
         <div className="text-center sm:text-left">
           {/* Insert logo and school name here */}
@@ -155,6 +158,11 @@ export default function Home() {
           <Image width={1200} height={800} src={p.imageUrl} alt="Post image" className="max-h-80 w-full rounded object-cover" />
               </div>
             )}
+            {p.fileUrl && (
+              <div className="mt-2 text-sm">
+                <a className="text-brand-600 underline" href={p.fileUrl} target="_blank" rel="noopener noreferrer">View attachment</a>
+              </div>
+            )}
             {/* If you support images in body, sanitize before render. */}
             <div className="mt-3 flex items-center gap-4 text-sm">
               <button aria-label="Toggle like" disabled={liking === p.id} onClick={() => toggleLike(p.id)} className="rounded border px-3 py-1">👍 Like ({p.likes?.length || 0})</button>
@@ -165,9 +173,61 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Insert privacy policy link here for GDPR/FERPA */}
+  {/* Insert privacy policy link here for GDPR/FERPA */}
       {/* Emergency contact protocols comment: Insert emergency contact info location here */}
     </main>
+  )
+}
+function AdminTherapistStatus() {
+  const [data, setData] = useState<{ scheduled: any[]; clockedIn: any[]; late: any[]; available: any[] } | null>(null)
+  useEffect(() => { fetch('/api/admin/shifts/status').then(r=>r.json()).then(setData).catch(()=>setData(null)) }, [])
+  if (!data) return null
+  return (
+    <section className="mb-4 -mx-4 px-4">
+      <div className="rounded border bg-white p-2">
+        <div className="mb-2 text-sm font-medium">Therapist Status (Today)</div>
+        <div className="grid grid-cols-4 gap-2">
+          <StatusCard title="Clocked" items={data.clockedIn} getLabel={(x)=>x.therapist?.name || x.therapist?.email || x.therapistId} />
+          <StatusCard title="Sched" items={data.scheduled} getLabel={(x)=>x.therapist?.name || x.therapist?.email || x.therapistId} />
+          <StatusCard title="Late" items={data.late} getLabel={(x)=>x.therapist?.name || x.therapist?.email || x.therapistId} />
+          <StatusCard title="Avail" items={data.available} getLabel={(x)=>x.therapistId} />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function StatusCard({ title, items, getLabel }: { title: string; items: any[]; getLabel: (x:any)=>string }) {
+  const maxShow = 4
+  const names = items.slice(0, maxShow).map(getLabel)
+  const more = Math.max(0, items.length - maxShow)
+  const toInitials = (s: string) => {
+    const parts = s.split(/\s+/).filter(Boolean)
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+    // If looks like an email, use the first two letters of the local part
+    const local = s.includes('@') ? s.split('@')[0] : s
+    return (local.slice(0,2) || '?').toUpperCase()
+  }
+  return (
+    <div className="rounded border p-2">
+      <div className="text-[12px] font-medium mb-1 flex items-center justify-between">
+        <span>{title}</span>
+        <span className="text-[11px] text-gray-500">{items.length}</span>
+      </div>
+      <div className="flex items-center gap-1 flex-wrap">
+        {names.map((n, i) => (
+          <span key={i} className="inline-flex items-center justify-center h-6 min-w-6 px-1 rounded bg-gray-100 text-[11px] font-medium">
+            {toInitials(String(n))}
+          </span>
+        ))}
+        {more > 0 && (
+          <span className="inline-flex items-center justify-center h-6 min-w-6 px-1 rounded bg-gray-200 text-[11px] font-medium">+{more}</span>
+        )}
+        {items.length === 0 && (
+          <span className="text-[11px] text-gray-500">None</span>
+        )}
+      </div>
+    </div>
   )
 }
 

@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { formatDistanceToNow } from 'date-fns'
 import { useCallback } from 'react'
 
-type Post = { id: string; title: string; body: string; imageUrl?: string; createdAt: string; category?: string | null; tags?: string | null; pinned?: boolean; comments: { id: string; body: string; createdAt: string }[] }
+type Post = { id: string; title: string; body: string; imageUrl?: string; fileUrl?: string; createdAt: string; category?: string | null; tags?: string | null; pinned?: boolean; comments: { id: string; body: string; createdAt: string }[] }
 
 export default function BoardPage() {
   const [posts, setPosts] = useState<Post[]>([])
@@ -115,6 +115,11 @@ export default function BoardPage() {
       {p.imageUrl && (
               <div className="mt-3">
         <Image width={1200} height={800} src={p.imageUrl} alt="Post image" className="max-h-80 w-full rounded object-cover" />
+              </div>
+            )}
+            {p.fileUrl && (
+              <div className="mt-2 text-sm">
+                <a className="text-brand-600 underline" href={p.fileUrl} target="_blank" rel="noopener noreferrer">View attachment</a>
               </div>
             )}
             <div className="mt-2 text-xs text-gray-500 flex items-center justify-between">
