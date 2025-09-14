@@ -129,9 +129,7 @@ async function main() {
   await prisma.eventRsvp.upsert({ where: { eventId_userId: { eventId: 'seed-evt-1', userId: parent.id } }, update: { status: 'YES' }, create: { eventId: 'seed-evt-1', userId: parent.id, status: 'YES' } })
   await prisma.eventRsvp.upsert({ where: { eventId_userId: { eventId: 'seed-evt-2', userId: therapist.id } }, update: { status: 'MAYBE' }, create: { eventId: 'seed-evt-2', userId: therapist.id, status: 'MAYBE' } })
 
-  // Templates
-  await prisma.messageTemplate.upsert({ where: { id: 'seed-tmpl-1' }, update: {}, create: { id: 'seed-tmpl-1', title: 'Daily Update', body: 'Today we worked on fine motor skills and language exercises.', tags: 'daily,update', scope: 'PARENT', createdById: therapist.id } })
-  await prisma.messageTemplate.upsert({ where: { id: 'seed-tmpl-2' }, update: {}, create: { id: 'seed-tmpl-2', title: 'Reminder', body: 'Please remember to send a water bottle and a light jacket tomorrow.', tags: 'reminder', scope: 'ALL', createdById: admin.id } })
+  // Templates removed
 
   // Availability
   await prisma.therapistAvailability.upsert({ where: { id: 'seed-av-1' }, update: {}, create: { id: 'seed-av-1', therapistId: therapist.id, weekday: 1, startTime: '09:00', endTime: '12:00' } })

@@ -1,6 +1,16 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import profilePng from '@/icons/profile.png'
+
+function safeAvatar(url?: string | null) {
+  if (!url) return profilePng as any
+  try {
+    const u = new URL(url)
+    if (u.hostname.includes('api.dicebear.com')) return profilePng as any
+  } catch {}
+  return url
+}
 
 type Student = { id: string; name: string; parent?: Participant; amTherapist?: Participant; pmTherapist?: Participant }
 type Message = { id: string; senderId: string; receiverId: string; content: string; createdAt: string }
@@ -37,7 +47,7 @@ export default function AdminMessagesPage() {
                       width={24}
                       height={24}
                       className="h-6 w-6 rounded-full border"
-                      src={s.parent.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent((s.parent.name||s.parent.email||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}`}
+                      src={safeAvatar(s.parent.photoUrl)}
                       alt={s.parent.name || 'Parent'}
                     />
                   )}
@@ -46,7 +56,7 @@ export default function AdminMessagesPage() {
                       width={24}
                       height={24}
                       className="h-6 w-6 rounded-full border"
-                      src={s.amTherapist.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent((s.amTherapist.name||s.amTherapist.email||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}`}
+                      src={safeAvatar(s.amTherapist.photoUrl)}
                       alt={s.amTherapist.name || 'AM Therapist'}
                     />
                   )}
@@ -55,7 +65,7 @@ export default function AdminMessagesPage() {
                       width={24}
                       height={24}
                       className="h-6 w-6 rounded-full border"
-                      src={s.pmTherapist.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent((s.pmTherapist.name||s.pmTherapist.email||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}`}
+                      src={safeAvatar(s.pmTherapist.photoUrl)}
                       alt={s.pmTherapist.name || 'PM Therapist'}
                     />
                   )}
@@ -87,19 +97,18 @@ export default function AdminMessagesPage() {
                     // Therapist left, Parent right; avatar between bubble and margin
                     const rowClasses = isParent ? 'justify-end' : 'justify-start'
                     const bubbleColor = isParent ? 'bg-[#0057b8] text-white' : 'bg-[#623394] text-white'
-                    const initials = (sender?.name || sender?.email || '?').split(' ').map(s => s[0]).join('').slice(0,2).toUpperCase()
-                    const avatar = sender?.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(initials)}`
+                    const avatar = profilePng
                     return (
                       <div key={m.id} className={`flex ${rowClasses}`}>
                         {!isParent && (
-                          <Image width={28} height={28} src={avatar} alt={sender?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start mr-2" />
+                          <Image width={28} height={28} src={avatar} alt={sender?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start mr-2 shrink-0 bg-gray-200 p-0.5" />
                         )}
                         <div className={`rounded-lg px-3 py-2 max-w-[70%] ${bubbleColor}`}>
                           <div className="text-[10px] opacity-80">{sender?.name || sender?.email} • {new Date(m.createdAt).toLocaleString()}</div>
                           <div className="whitespace-pre-wrap text-sm">{m.content}</div>
                         </div>
                         {isParent && (
-                          <Image width={28} height={28} src={avatar} alt={sender?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start ml-2" />
+                          <Image width={28} height={28} src={avatar} alt={sender?.name || 'avatar'} className="h-7 w-7 rounded-full border self-start ml-2 shrink-0 bg-gray-200 p-0.5" />
                         )}
                       </div>
                     )

@@ -24,6 +24,17 @@
 				"$tsc"
 			],
 			"group": "build"
+		},
+		{
+			"label": "Generate Prisma Client",
+			"type": "shell",
+			"command": "npx prisma generate",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
 		}
 	]
 }

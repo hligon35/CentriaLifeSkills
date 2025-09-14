@@ -1,9 +1,16 @@
 "use client"
 import Link from 'next/link'
+import Image, { type StaticImageData } from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { APP_TITLE } from '@/lib/appConfig'
 import clsx from 'clsx'
+import homePng from '@/icons/home.png'
+import messagesPng from '@/icons/messages.png'
+import calendarPng from '@/icons/calendar.png'
+import profilePng from '@/icons/profile.png'
+import settingsPng from '@/icons/settings.png'
+import logoutPng from '@/icons/logout.png'
 
 export default function Header() {
   const router = useRouter()
@@ -43,9 +50,35 @@ export default function Header() {
       { href: '/', label: 'Home' },
       { href: '/chat', label: 'Messages' },
       { href: '/calendar', label: 'Calendar' },
-      { href: '/search', label: 'Search' },
+      { href: '/settings', label: 'Settings' },
     ]
   }, [role])
+
+  const menuRef = useRef<HTMLDivElement | null>(null)
+  // When menu opens, focus first item and add Escape + focus trap
+  useEffect(() => {
+    if (!menuOpen) return
+    const root = menuRef.current
+    const focusables = root?.querySelectorAll<HTMLElement>('a,button') || []
+    focusables[0]?.focus()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.preventDefault(); setMenuOpen(false) }
+      if (e.key === 'Tab' && focusables.length > 0) {
+        const first = focusables[0]
+        const last = focusables[focusables.length - 1]
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+      }
+      if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && focusables.length > 0) {
+        e.preventDefault()
+        const idx = Array.from(focusables).indexOf(document.activeElement as HTMLElement)
+        const next = e.key === 'ArrowDown' ? (idx + 1) % focusables.length : (idx - 1 + focusables.length) % focusables.length
+        focusables[next]?.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [menuOpen])
 
   return (
     <>
@@ -58,7 +91,7 @@ export default function Header() {
       {menuOpen && (
         <>
           <div aria-hidden="true" role="presentation" className="hidden md:block fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-          <div className="hidden md:block fixed top-14 right-2 z-50 w-56 rounded-md border bg-white text-gray-800 shadow-lg p-2">
+          <div ref={menuRef} className="hidden md:block fixed top-14 right-2 z-50 w-56 rounded-md border bg-white text-gray-800 shadow-lg p-2" aria-label="Main menu">
             <ul className="text-sm">
               {desktopItems.map(item => (
                 <li key={item.href}>
@@ -83,53 +116,66 @@ function MobileBottomNav({ role, activePath, onLogout, unread }: { role: string 
   const items = useMemo((): Array<{ href: string; label: string; icon: JSX.Element; match: (p: string) => boolean }> => {
     if (role === 'PARENT') {
       return [
-        { href: '/', label: 'Home', icon: IconHome(), match: p => p === '/' },
-        { href: '/chat', label: 'Messages', icon: IconChat(unread), match: p => p.startsWith('/chat') },
-        { href: '/calendar', label: 'Calendar', icon: IconBell(), match: p => p.startsWith('/calendar') },
-        { href: '/parent/therapists', label: 'Therapists', icon: IconUsers(), match: p => p.startsWith('/parent/therapists') },
+        { href: '/', label: 'Home', icon: PngIcon(homePng), match: p => p === '/' },
+        { href: '/chat', label: 'Messages', icon: PngIcon(messagesPng, unread), match: p => p.startsWith('/chat') },
+        { href: '/calendar', label: 'Calendar', icon: PngIcon(calendarPng), match: p => p.startsWith('/calendar') },
+        { href: '/parent/therapists', label: 'Therapists', icon: PngIcon(profilePng), match: p => p.startsWith('/parent/therapists') },
       ]
     }
   if (role === 'ADMIN') {
       return [
-        { href: '/', label: 'Home', icon: IconHome(), match: p => p === '/' },
-        { href: '/calendar', label: 'Calendar', icon: IconBell(), match: p => p.startsWith('/calendar') },
-        { href: '/admin/directory', label: 'Directory', icon: IconUsers(), match: p => p.startsWith('/admin/directory') },
-        { href: '/admin/settings', label: 'Admin', icon: IconShield(), match: p => p.startsWith('/admin/settings') },
+        { href: '/', label: 'Home', icon: PngIcon(homePng), match: p => p === '/' },
+        { href: '/calendar', label: 'Calendar', icon: PngIcon(calendarPng), match: p => p.startsWith('/calendar') },
+        { href: '/admin/directory', label: 'Directory', icon: PngIcon(profilePng), match: p => p.startsWith('/admin/directory') },
+        { href: '/admin/settings', label: 'Admin', icon: PngIcon(settingsPng), match: p => p.startsWith('/admin/settings') },
       ]
     }
     // Default (therapist)
     return [
-      { href: '/', label: 'Home', icon: IconHome(), match: p => p === '/' },
-      { href: '/chat', label: 'Messages', icon: IconChat(unread), match: p => p.startsWith('/chat') },
-      { href: '/calendar', label: 'Calendar', icon: IconBell(), match: p => p.startsWith('/calendar') },
-      { href: '/search', label: 'Search', icon: IconCog(), match: p => p.startsWith('/search') },
+      { href: '/', label: 'Home', icon: PngIcon(homePng), match: p => p === '/' },
+      { href: '/chat', label: 'Messages', icon: PngIcon(messagesPng, unread), match: p => p.startsWith('/chat') },
+      { href: '/calendar', label: 'Calendar', icon: PngIcon(calendarPng), match: p => p.startsWith('/calendar') },
+      { href: '/settings', label: 'Settings', icon: PngIcon(settingsPng), match: p => p.startsWith('/settings') },
     ]
   }, [role, unread])
 
   return (
-  <nav className="fixed bottom-0 inset-x-0 z-50 bg-[#623394] text-white pb-[env(safe-area-inset-bottom)] relative md:hidden">
-  <ul className="grid grid-cols-4 pr-12">
-        {items.map((it) => {
-          const active = it.match(activePath)
-          return (
-            <li key={it.href} className="list-none">
-              <Link aria-label={it.label} href={it.href} className={clsx('flex items-center justify-center py-3', active ? 'opacity-100' : 'opacity-80') }>
-                <span aria-hidden className={clsx('h-8 w-8 rounded-md flex items-center justify-center', active ? 'bg-white/15' : 'bg-transparent')}>{it.icon}</span>
-              </Link>
-            </li>
-          )
-        })}
-      </ul>
-      <button
-        type="button"
-        aria-label="Log out"
-        title="Log out"
-        onClick={onLogout}
-        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md hover:bg-white/15 focus:outline-none focus-visible:ring"
-      >
-        {IconPower()}
-      </button>
+  <nav className="fixed bottom-0 inset-x-0 z-50 bg-[#623394] text-white pb-[env(safe-area-inset-bottom)] md:hidden">
+      <div className="w-full grid grid-cols-[repeat(4,1fr)_auto] items-center px-2 -ml-[10px]">
+        <ul className="col-span-4 w-full grid grid-cols-4">
+          {items.map((it) => {
+            const active = it.match(activePath)
+            return (
+              <li key={it.href} className="list-none">
+                <Link aria-label={it.label} href={it.href} className={clsx('flex items-center justify-center py-3 w-full h-full', active ? 'opacity-100' : 'opacity-80') }>
+                  <span aria-hidden className={clsx('h-8 w-8 rounded-md flex items-center justify-center', active ? 'bg-white/15' : 'bg-transparent')}>{it.icon}</span>
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+        <button
+          type="button"
+          aria-label="Log out"
+          title="Log out"
+          onClick={onLogout}
+          className="justify-self-end p-2 rounded-md hover:bg-white/15 focus:outline-none focus-visible:ring translate-y-[3px]"
+        >
+          {PngIcon(logoutPng)}
+        </button>
+      </div>
     </nav>
+  )
+}
+
+function PngIcon(src: string | StaticImageData, unread?: number) {
+  return (
+    <span className="relative inline-flex">
+      <Image src={src} alt="" aria-hidden width={24} height={24} className="h-6 w-6" />
+      {(unread || 0) > 0 && (
+        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-500 text-[10px] leading-none px-1.5 py-0.5 min-w-[1rem]">{Math.min(unread || 0, 99)}</span>
+      )}
+    </span>
   )
 }
 

@@ -41,9 +41,11 @@ export default function CalendarPage() {
           <button className="rounded border px-2 py-1" onClick={() => shiftMonths(1)}>Next &rarr;</button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-2">
-        {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => <div key={d} className="text-xs text-center text-gray-600">{d}</div>)}
-        {Array(first.getDay()).fill(0).map((_,i) => <div key={`sp-${i}`} />)}
+  <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
+  {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => <div key={d} className="hidden md:block text-xs text-center text-gray-600">{d}</div>)}
+        <div className="hidden md:contents">
+          {Array(first.getDay()).fill(0).map((_,i) => <div key={`sp-${i}`} />)}
+        </div>
         {days.map(d => {
           const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
           const todays = byDay[key] || []
@@ -52,15 +54,15 @@ export default function CalendarPage() {
               <div className="text-xs text-gray-600 mb-1">{d.getDate()}</div>
               <ul className="space-y-1">
                 {todays.map(e => (
-                  <li key={e.id} className="text-xs rounded bg-brand-50 border border-brand-200 px-2 py-1">
+                  <li key={e.id} className="text-xs rounded bg-brand-50 border border-brand-200 px-2 py-1 relative">
                     <div className="font-medium truncate">{e.title}</div>
                     {e.location && <div className="opacity-70 truncate">{e.location}</div>}
-                    <div className="mt-1 flex items-center gap-1">
+                    <div className="mt-1 flex flex-wrap gap-1">
                       <span className="mr-1 text-[10px] text-gray-700">RSVP:</span>
                       {(['YES','MAYBE','NO'] as const).map(val => (
                         <button
                           key={val}
-                          className={`rounded px-1.5 py-0.5 border ${e.rsvpStatus===val? 'bg-[#623394] text-white border-[#623394]':'bg-white text-gray-800'}`}
+                          className={`rounded px-1 py-0.5 text-[10px] border shrink-0 ${e.rsvpStatus===val? 'bg-[#623394] text-white border-[#623394]':'bg-white text-gray-800'}`}
                           onClick={async () => {
                             try {
                               await fetch('/api/events/rsvp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ eventId: e.id, status: val }) })

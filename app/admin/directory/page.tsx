@@ -1,5 +1,16 @@
 "use client"
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
+import profilePng from '@/icons/profile.png'
+
+function safeAvatar(url?: string | null) {
+  if (!url) return profilePng as any
+  try {
+    const u = new URL(url)
+    if (u.hostname.includes('api.dicebear.com')) return profilePng as any
+  } catch {}
+  return url
+}
 
 type Staff = { id: string; name: string | null; email?: string; role: string; photoUrl?: string | null }
 type Student = {
@@ -63,8 +74,8 @@ export default function AdminDirectoryPage() {
       <ul className="space-y-2">
             {staff.map(u => (
         <li key={u.id} className="flex items-center gap-3 border rounded p-3 bg-white active:scale-[0.99] transition">
-                <input type="checkbox" className="mt-0.5" checked={selectedUserIds.includes(u.id)} onChange={e => setSelectedUserIds(prev => e.target.checked ? [...new Set([...prev, u.id])] : prev.filter(x => x !== u.id))} />
-                <img src={u.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent((u.name||u.email||'?').split(' ').map(x=>x[0]).join('').slice(0,2))}`} alt={u.name||'User'} className="h-8 w-8 rounded-full" loading="lazy" />
+                <input aria-label={`Select ${u.name || u.email || 'user'}`} type="checkbox" className="mt-0.5" checked={selectedUserIds.includes(u.id)} onChange={e => setSelectedUserIds(prev => e.target.checked ? [...new Set([...prev, u.id])] : prev.filter(x => x !== u.id))} />
+                <Image src={safeAvatar(u.photoUrl)} alt={u.name||'User'} width={32} height={32} className="h-8 w-8 rounded-full" />
                 <div className="flex-1">
                   <div className="text-sm font-medium">{u.name || u.email}</div>
                   <div className="text-xs text-gray-500">{u.role}{u.email ? ` · ${u.email}` : ''}</div>
@@ -92,7 +103,7 @@ export default function AdminDirectoryPage() {
                 <div className="flex items-center gap-2 mt-1">
                   {s.parent && (
                     <div className="flex items-center gap-1">
-                      <input type="checkbox" className="mt-0.5" checked={selectedUserIds.includes((s.parent as any).id)} onChange={e => setSelectedUserIds(prev => e.target.checked ? [...new Set([...prev, (s.parent as any).id])] : prev.filter(x => x !== (s.parent as any).id))} />
+                      <input aria-label={`Select parent ${s.parent?.name || ''}`} type="checkbox" className="mt-0.5" checked={selectedUserIds.includes((s.parent as any).id)} onChange={e => setSelectedUserIds(prev => e.target.checked ? [...new Set([...prev, (s.parent as any).id])] : prev.filter(x => x !== (s.parent as any).id))} />
                       <Badge avatar={s.parent.photoUrl} label={s.parent.name||'Parent'} />
                       <button
                         className="text-[11px] rounded border px-2 py-0.5"
@@ -103,7 +114,7 @@ export default function AdminDirectoryPage() {
                   )}
                   {s.amTherapist && (
                     <div className="flex items-center gap-1">
-                      <input type="checkbox" className="mt-0.5" checked={selectedUserIds.includes((s.amTherapist as any).id)} onChange={e => setSelectedUserIds(prev => e.target.checked ? [...new Set([...prev, (s.amTherapist as any).id])] : prev.filter(x => x !== (s.amTherapist as any).id))} />
+                      <input aria-label={`Select AM therapist ${s.amTherapist?.name || ''}`} type="checkbox" className="mt-0.5" checked={selectedUserIds.includes((s.amTherapist as any).id)} onChange={e => setSelectedUserIds(prev => e.target.checked ? [...new Set([...prev, (s.amTherapist as any).id])] : prev.filter(x => x !== (s.amTherapist as any).id))} />
                       <Badge avatar={s.amTherapist.photoUrl} label={s.amTherapist.name||'AM Therapist'} />
                       <button
                         className="text-[11px] rounded border px-2 py-0.5"
@@ -114,7 +125,7 @@ export default function AdminDirectoryPage() {
                   )}
                   {s.pmTherapist && (
                     <div className="flex items-center gap-1">
-                      <input type="checkbox" className="mt-0.5" checked={selectedUserIds.includes((s.pmTherapist as any).id)} onChange={e => setSelectedUserIds(prev => e.target.checked ? [...new Set([...prev, (s.pmTherapist as any).id])] : prev.filter(x => x !== (s.pmTherapist as any).id))} />
+                      <input aria-label={`Select PM therapist ${s.pmTherapist?.name || ''}`} type="checkbox" className="mt-0.5" checked={selectedUserIds.includes((s.pmTherapist as any).id)} onChange={e => setSelectedUserIds(prev => e.target.checked ? [...new Set([...prev, (s.pmTherapist as any).id])] : prev.filter(x => x !== (s.pmTherapist as any).id))} />
                       <Badge avatar={s.pmTherapist.photoUrl} label={s.pmTherapist.name||'PM Therapist'} />
                       <button
                         className="text-[11px] rounded border px-2 py-0.5"
@@ -134,7 +145,7 @@ export default function AdminDirectoryPage() {
       <div className="mt-8 border-t pt-4">
         <h2 className="font-medium mb-2">Import (CSV)</h2>
         <div className="flex items-center gap-2 mb-2">
-          <select value={csvType} onChange={e=>setCsvType(e.target.value as any)} className="border rounded px-2 py-1 text-sm">
+          <select aria-label="CSV import type" value={csvType} onChange={e=>setCsvType(e.target.value as any)} className="border rounded px-2 py-1 text-sm">
             <option value="users">Users (email,name,role,photoUrl)</option>
             <option value="students">Students (name,parentEmail,amTherapistEmail,pmTherapistEmail)</option>
           </select>
@@ -150,7 +161,7 @@ export default function AdminDirectoryPage() {
         <div className="text-xs text-gray-600 mb-2">Selected: {selectedUserIds.length}</div>
         <div className="grid sm:grid-cols-2 gap-2 mb-2">
           <input value={bulkTitle} onChange={e=>setBulkTitle(e.target.value)} placeholder="Title" className="border rounded px-2 py-1 text-sm" />
-          <input type="datetime-local" value={bulkExpiresAt} onChange={e=>setBulkExpiresAt(e.target.value)} className="border rounded px-2 py-1 text-sm" />
+          <input aria-label="Bulk memo expiration" type="datetime-local" value={bulkExpiresAt} onChange={e=>setBulkExpiresAt(e.target.value)} className="border rounded px-2 py-1 text-sm" />
           <textarea value={bulkBody} onChange={e=>setBulkBody(e.target.value)} placeholder="Message" rows={3} className="sm:col-span-2 border rounded p-2 text-sm" />
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -204,7 +215,7 @@ export default function AdminDirectoryPage() {
               <textarea value={memoBody} onChange={e=>setMemoBody(e.target.value)} placeholder="Message" rows={4} className="w-full border rounded p-2 text-sm" />
               <div className="flex items-center gap-2">
                 <label className="text-xs text-gray-600">Expires At</label>
-                <input type="datetime-local" value={memoExpiresAt} onChange={e=>setMemoExpiresAt(e.target.value)} className="border rounded px-2 py-1 text-sm" />
+                <input aria-label="Memo expiration" type="datetime-local" value={memoExpiresAt} onChange={e=>setMemoExpiresAt(e.target.value)} className="border rounded px-2 py-1 text-sm" />
               </div>
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button className="rounded border px-3 py-1 text-sm" onClick={() => { setMemoOpen(false) }} disabled={memoBusy}>Cancel</button>
@@ -243,10 +254,9 @@ export default function AdminDirectoryPage() {
 }
 
 function Badge({ avatar, label }: { avatar?: string | null; label: string }) {
-  const fallback = `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(label.split(' ').map(x=>x[0]).join('').slice(0,2))}`
   return (
     <span className="inline-flex items-center gap-2 border rounded px-2 py-1 text-xs bg-white">
-      <img src={avatar || fallback} alt={label} className="h-5 w-5 rounded-full" loading="lazy" />
+  <Image src={safeAvatar(avatar)} alt={label} width={20} height={20} className="h-5 w-5 rounded-full" />
       {label}
     </span>
   )

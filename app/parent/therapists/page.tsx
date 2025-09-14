@@ -2,6 +2,16 @@ import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
+import profilePng from '@/icons/profile.png'
+
+function safeAvatar(url?: string | null) {
+  if (!url) return profilePng as any
+  try {
+    const u = new URL(url)
+    if (u.hostname.includes('api.dicebear.com')) return profilePng as any
+  } catch {}
+  return url
+}
 
 export default async function ParentTherapistsPage() {
   const user = await getSession()
@@ -67,8 +77,7 @@ export default async function ParentTherapistsPage() {
 }
 
 function TherapistCard({ t, slotLabel }: { t: { id: string; name: string | null; email: string; photoUrl: string | null; role?: string | null }, slotLabel: string }) {
-  const initials = (t.name || t.email || '?').split(' ').map(s => s[0]).join('').slice(0,2).toUpperCase()
-  const avatar = t.photoUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(initials)}`
+  const avatar = safeAvatar(t.photoUrl)
   return (
     <div className="rounded-lg border p-4 flex gap-3 items-start">
   <Image width={56} height={56} src={avatar} alt={t.name || 'Therapist'} className="h-14 w-14 rounded-full border" />

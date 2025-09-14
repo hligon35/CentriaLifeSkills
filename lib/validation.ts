@@ -66,12 +66,7 @@ export const RsvpSchema = z.object({
   comment: z.string().max(1000).optional(),
 })
 
-export const TemplateCreateSchema = z.object({
-  title: z.string().min(1).max(200),
-  body: z.string().max(20000),
-  tags: z.array(z.string().min(1).max(30)).optional(),
-  scope: z.enum(['ALL', 'STAFF', 'PARENT']).optional(),
-})
+// Template feature removed
 
 export const AvailabilitySchema = z.object({
   weekday: z.number().int().min(0).max(6),
