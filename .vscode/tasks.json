@@ -6,6 +6,24 @@
 			"type": "shell",
 			"command": "npx prisma generate",
 			"args": []
+		},
+		{
+			"label": "Generate Prisma Client",
+			"type": "shell",
+			"command": "npx prisma generate"
+		},
+		{
+			"label": "Typecheck",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"typecheck"
+			],
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
 		}
 	]
 }

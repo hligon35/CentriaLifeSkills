@@ -41,14 +41,22 @@ export default function LoginPage() {
   }
 
   async function handleDevSSO(role: 'THERAPIST' | 'PARENT') {
-    const res = await fetch('/api/auth/sso/dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role }) })
-    if (res.ok) {
+    try {
+      setError(null)
+      const res = await fetch('/api/auth/sso/dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role }) })
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        setError(j.error || 'Dev SSO failed')
+        return
+      }
       const rt = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('returnTo') || '') : ''
       if (rt) {
         window.location.href = rt
       } else {
         window.location.href = role === 'THERAPIST' ? '/therapist' : '/parent'
       }
+    } catch (e) {
+      setError('Dev SSO failed to start (network)')
     }
   }
 
@@ -70,7 +78,6 @@ export default function LoginPage() {
           <button
             type="button"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
-            aria-pressed={showPassword ? 'true' : 'false'}
             onClick={() => setShowPassword(p => !p)}
             className="absolute inset-y-0 right-2 my-auto h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 focus:outline-none focus-visible:ring"
           >

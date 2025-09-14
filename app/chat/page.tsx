@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { compressImage } from '@/lib/compress'
 
@@ -22,6 +22,9 @@ export default function MessagesPage() {
   const [media, setMedia] = useState<File | null>(null)
   const [cursor, setCursor] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(false)
+  const [counterpartId, setCounterpartId] = useState<string | undefined>(undefined)
+  const [counterparts, setCounterparts] = useState<Array<{ id: string; name: string }>>([])
+  const [templates, setTemplates] = useState<Array<{ id: string; title: string; body: string }>>([])
   const endRef = useRef<HTMLDivElement>(null)
   const loadingRef = useRef(false)
 
@@ -54,6 +57,27 @@ export default function MessagesPage() {
     loadMore()
   }, [loadMore])
 
+  // Load potential counterparts: if therapist, parents of assigned students; if parent, therapists of their students
+  useEffect(() => {
+    async function loadCounterparts() {
+      try {
+        const r = await fetch('/api/directory/students')
+        const js = await r.json()
+        const set = new Map<string, string>()
+        for (const s of js.students || []) {
+          if (s.parent?.id) set.set(s.parent.id, s.parent.name || 'Parent')
+          if (s.amTherapist?.id) set.set(s.amTherapist.id, s.amTherapist.name || 'Therapist')
+          if (s.pmTherapist?.id) set.set(s.pmTherapist.id, s.pmTherapist.name || 'Therapist')
+        }
+        const arr = Array.from(set.entries()).map(([id, name]) => ({ id, name }))
+        setCounterparts(arr)
+        if (arr[0]) setCounterpartId(prev => prev ?? arr[0].id)
+      } catch {}
+    }
+    loadCounterparts()
+    fetch('/api/templates').then(r => r.json()).then(d => setTemplates(d.items || [])).catch(() => {})
+  }, [])
+
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
   async function send() {
@@ -68,9 +92,6 @@ export default function MessagesPage() {
       if (up.ok) { mediaUrl = (await up.json()).url }
     }
     // Optional E2EE: import key and encrypt here, then send ciphertext and iv
-    // TODO: Select a conversation; for now, send to the most recent counterpart if any
-    const last = messages[0]
-    const counterpartId = last ? (last.senderId /* me? */) : undefined
     if (!counterpartId) return
     const res = await fetch('/api/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ receiverId: counterpartId, content: text, mediaUrl }) })
     if (res.ok) {
@@ -84,6 +105,15 @@ export default function MessagesPage() {
   return (
   <main className="mx-auto max-w-2xl p-3 sm:p-4">
   <h1 className="text-xl font-semibold mb-4 text-center sm:text-left">Messages</h1>
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <select aria-label="Select recipient" className="rounded border px-2 py-1" value={counterpartId} onChange={e => setCounterpartId(e.target.value)}>
+          {counterparts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <select aria-label="Insert template" className="rounded border px-2 py-1" onChange={e => { const t = templates.find(x => x.id === e.target.value); if (t) setText(prev => (prev ? prev + '\n' : '') + t.body) }}>
+          <option value="">Template</option>
+          {templates.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
+        </select>
+      </div>
       {/* Insert legal disclaimers and emergency protocol comments here */}
   <div className="h-[60vh] overflow-y-auto flex flex-col border rounded bg-white p-2 sm:p-3 space-y-2">
         {messages.map(m => {

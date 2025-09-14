@@ -6,22 +6,22 @@ import Image from 'next/image'
 export default async function ParentTherapistsPage() {
   const user = await getSession()
   if (!user || user.role !== 'PARENT') redirect('/login')
-  let students: Array<{
-    id: string;
-    name: string;
-    amTherapist: { id: string; name: string | null; email: string; photoUrl: string | null; role?: string | null } | null;
-    pmTherapist: { id: string; name: string | null; email: string; photoUrl: string | null; role?: string | null } | null;
-  }> = []
+  let students: any[] = []
   try {
     students = await prisma.student.findMany({
       where: { parentId: user.sub },
-      select: {
-        id: true,
-        name: true,
+      include: {
         amTherapist: { select: { id: true, name: true, email: true, photoUrl: true, role: true } },
-        pmTherapist: { select: { id: true, name: true, email: true, photoUrl: true, role: true } }
+        pmTherapist: { select: { id: true, name: true, email: true, photoUrl: true, role: true } },
       }
-    })
+    }) as any
+      // Lookup BCBA user details in one query
+    const bcbaIds = Array.from(new Set(students.map((s: any) => s.bcbaId).filter(Boolean))) as string[]
+      if (bcbaIds.length) {
+        const bcbaUsers = await prisma.user.findMany({ where: { id: { in: bcbaIds } }, select: { id: true, name: true, email: true, photoUrl: true } })
+        const byId = Object.fromEntries(bcbaUsers.map(u => [u.id, u])) as Record<string, { id: string; name: string | null; email: string; photoUrl: string | null }>
+      students = students.map((s: any) => ({ ...s, bcba: s.bcbaId ? byId[s.bcbaId] ?? null : null }))
+      }
   } catch (e) {
     if (String(process.env.NODE_ENV) === 'production') throw e
     // In dev, show an empty state instead of crashing if DB isn't ready
@@ -40,9 +40,16 @@ export default async function ParentTherapistsPage() {
           name: string;
           amTherapist: { id: string; name: string | null; email: string; photoUrl: string | null; role?: string | null } | null;
           pmTherapist: { id: string; name: string | null; email: string; photoUrl: string | null; role?: string | null } | null;
+          bcba?: { id: string; name: string | null; email: string; photoUrl: string | null } | null;
         }) => (
           <section key={stu.id} className="rounded border bg-white p-4">
             <div className="mb-3 font-medium">Student: {stu.name}</div>
+            {stu.bcba && (
+              <div className="mb-4">
+                <div className="text-sm text-gray-700 mb-1">BCBA</div>
+                  <TherapistCard t={stu.bcba as any} slotLabel="Head Therapist (BCBA)" />
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {stu.amTherapist && (
                 <TherapistCard t={stu.amTherapist} slotLabel="AM Therapist" />

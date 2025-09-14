@@ -18,7 +18,8 @@ export default function SettingsPage() {
         </section>
         <section className="rounded border bg-white p-4">
           <div className="font-medium mb-2">Media Sharing Permissions</div>
-          <select className="rounded border px-2 py-1" value={mediaShare} onChange={e => setMediaShare(e.target.value as any)}>
+          <label className="sr-only" htmlFor="mediaShare">Media Sharing Permissions</label>
+          <select id="mediaShare" className="rounded border px-2 py-1" value={mediaShare} onChange={e => setMediaShare(e.target.value as any)}>
             <option value="therapist">Therapist</option>
             <option value="parents-only">Parents Only</option>
             <option value="admins-only">Admins Only</option>
@@ -27,7 +28,8 @@ export default function SettingsPage() {
         <section className="rounded border bg-white p-4">
           <div className="font-medium mb-2">Language</div>
           {/* Insert supported languages */}
-          <select className="rounded border px-2 py-1" value={lang} onChange={e => setLang(e.target.value)}>
+          <label className="sr-only" htmlFor="language">Language</label>
+          <select id="language" className="rounded border px-2 py-1" value={lang} onChange={e => setLang(e.target.value)}>
             <option value="en">English</option>
             <option value="es">Español</option>
             <option value="fr">Français</option>

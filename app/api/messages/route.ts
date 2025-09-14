@@ -65,7 +65,8 @@ export async function POST(req: NextRequest) {
       content: sanitize(parsed.data.content), // if E2EE, send ciphertext, otherwise sanitize content
       mediaUrl: parsed.data.mediaUrl,
       mediaType: parsed.data.mediaType,
-      iv: parsed.data.iv
+      iv: parsed.data.iv,
+      channel: 'DIRECT'
     }
   })
   return NextResponse.json(created, { status: 201 })

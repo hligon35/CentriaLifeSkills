@@ -15,6 +15,8 @@ model User {
   passwordHash          String
   photoUrl              String?
   childProfile          String?
+  language              String?             // preferred language code, e.g., 'en', 'es'
+  icsToken              String?             @unique // token for personal ICS feed
   createdAt             DateTime            @default(now())
   messagesSent          Message[]           @relation("messagesSent")
   messagesRecv          Message[]           @relation("messagesRecv")
@@ -26,9 +28,20 @@ model User {
   studentsAsParent      Student[]           @relation("parent")
   studentsAsAmTherapist Student[]           @relation("amTherapist")
   studentsAsPmTherapist Student[]           @relation("pmTherapist")
+  // BCBA (head therapist) assignment
+  studentsAsBcba       Student[]           @relation("bcba")
   // Back-relations added to satisfy relations
   urgentMemoReceipts    UrgentMemoReceipt[]
   auditLogs             AuditLog[]
+  preferences           NotificationPreference[]
+  availability          TherapistAvailability[]
+  appointmentsAsTherapist Appointment[]     @relation("apptTherapist")
+  appointmentsAsParent    Appointment[]     @relation("apptParent")
+  rsvps                 EventRsvp[]
+  messageTemplates      MessageTemplate[]
+  notesAuthored         StudentNote[]
+  dailyLogsAuthored     DailyLog[]
+  progressReportsAuthored ProgressReport[]
 }
 
 model Message {
@@ -43,6 +56,18 @@ model Message {
   iv         String? // E2EE IV/base64
   createdAt  DateTime  @default(now())
   readAt     DateTime?
+  channel    String    @default("DIRECT") // DIRECT | STAFF | NOTICE
+  attachments MessageAttachment[]
+}
+
+model MessageAttachment {
+  id        String   @id @default(cuid())
+  message   Message  @relation(fields: [messageId], references: [id])
+  messageId String
+  url       String   // e.g., s3://bucket/key or https url
+  mimeType  String
+  duration  Int?     // seconds for audio/video
+  createdAt DateTime @default(now())
 }
 
 model Post {
@@ -55,6 +80,9 @@ model Post {
   createdAt DateTime   @default(now())
   comments  Comment[]
   likes     PostLike[]
+  pinned    Boolean    @default(false)
+  category  String?    // e.g., ANNOUNCEMENT | EVENT | NEWSLETTER
+  tags      String?    // comma-separated for SQLite
 }
 
 model Comment {
@@ -99,7 +127,15 @@ model Student {
   amTherapistId String
   pmTherapist   User     @relation("pmTherapist", fields: [pmTherapistId], references: [id])
   pmTherapistId String
+  // Assigned BCBA (head therapist) overseeing this student
+  bcba          User?    @relation("bcba", fields: [bcbaId], references: [id])
+  bcbaId        String?
   createdAt     DateTime @default(now())
+  photoUrl      String?
+  notes         StudentNote[]
+  dailyLogs     DailyLog[]
+  progress      ProgressReport[]
+  appointments  Appointment[]
 }
 
 // Admin-configured urgent memos displayed to users on login
@@ -158,5 +194,107 @@ model Event {
   endAt        DateTime
   createdAt    DateTime @default(now())
 
+  rsvps        EventRsvp[]
+
   @@index([startAt])
+}
+
+model EventRsvp {
+  event     Event   @relation(fields: [eventId], references: [id])
+  eventId   String
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String
+  status    String  // YES | NO | MAYBE
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@id([eventId, userId])
+}
+
+model MessageTemplate {
+  id          String   @id @default(cuid())
+  title       String
+  body        String
+  tags        String?  // comma-separated tags
+  scope       String   @default("ALL") // ALL | STAFF | PARENT
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime @default(now())
+}
+
+model NotificationPreference {
+  id      String @id @default(cuid())
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String
+  key     String
+  value   String
+
+  @@unique([userId, key])
+}
+
+model StudentNote {
+  id         String   @id @default(cuid())
+  student    Student  @relation(fields: [studentId], references: [id])
+  studentId  String
+  author     User     @relation(fields: [authorId], references: [id])
+  authorId   String
+  body       String
+  visibility String   @default("STAFF") // STAFF | PARENT
+  createdAt  DateTime @default(now())
+}
+
+model DailyLog {
+  id         String   @id @default(cuid())
+  student    Student  @relation(fields: [studentId], references: [id])
+  studentId  String
+  author     User     @relation(fields: [authorId], references: [id])
+  authorId   String
+  date       DateTime @default(now())
+  activities String?  // free text or JSON string
+  meals      String?
+  naps       String?
+  notes      String?
+  createdAt  DateTime @default(now())
+}
+
+model ProgressReport {
+  id          String   @id @default(cuid())
+  student     Student  @relation(fields: [studentId], references: [id])
+  studentId   String
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    String
+  title       String
+  body        String
+  goalsJson   String?  // serialized goals/milestones
+  periodStart DateTime?
+  periodEnd   DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model TherapistAvailability {
+  id          String   @id @default(cuid())
+  therapist   User     @relation(fields: [therapistId], references: [id])
+  therapistId String
+  weekday     Int      // 0=Sun..6=Sat
+  startTime   String   // HH:mm
+  endTime     String   // HH:mm
+  createdAt   DateTime @default(now())
+
+  @@index([therapistId, weekday])
+}
+
+model Appointment {
+  id            String   @id @default(cuid())
+  therapist     User     @relation("apptTherapist", fields: [therapistId], references: [id])
+  therapistId   String
+  parent        User     @relation("apptParent", fields: [parentId], references: [id])
+  parentId      String
+  student       Student  @relation(fields: [studentId], references: [id])
+  studentId     String
+  startAt       DateTime
+  endAt         DateTime
+  status        String   @default("PENDING") // PENDING | CONFIRMED | CANCELLED
+  createdAt     DateTime @default(now())
+
+  @@index([therapistId, startAt])
 }

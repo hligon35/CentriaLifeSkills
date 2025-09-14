@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
         name: true,
         parent: { select: { id: true, name: true, email: true, photoUrl: true } },
         amTherapist: { select: { id: true, name: true, email: true, photoUrl: true } },
-        pmTherapist: { select: { id: true, name: true, email: true, photoUrl: true } },
+  pmTherapist: { select: { id: true, name: true, email: true, photoUrl: true } },
       },
       orderBy: { name: 'asc' }
     })
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
         name: true,
         parent: { select: { id: true, name: true, photoUrl: true } },
         amTherapist: { select: { id: true, name: true, photoUrl: true } },
-        pmTherapist: { select: { id: true, name: true, photoUrl: true } },
+  pmTherapist: { select: { id: true, name: true, photoUrl: true } },
       },
       orderBy: { name: 'asc' }
     })
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
         id: true,
         name: true,
         amTherapist: { select: { id: true, name: true, photoUrl: true } },
-        pmTherapist: { select: { id: true, name: true, photoUrl: true } },
+  pmTherapist: { select: { id: true, name: true, photoUrl: true } },
       },
       orderBy: { name: 'asc' }
     })

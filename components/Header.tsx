@@ -2,29 +2,89 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { APP_TITLE } from '@/lib/appConfig'
 import clsx from 'clsx'
 
 export default function Header() {
   const router = useRouter()
   const pathname = usePathname()
   const [role, setRole] = useState<string | null>(null)
+  const [unread, setUnread] = useState<number>(0)
+  const [menuOpen, setMenuOpen] = useState<boolean>(false)
   const onLogout = useCallback(async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
     router.push('/login')
   }, [router])
   useEffect(() => {
     fetch('/api/auth/me').then(r => r.json()).then(j => setRole(j?.user?.role || null)).catch(() => setRole(null))
+    fetch('/api/messages/unread').then(r => r.json()).then(j => setUnread(Number(j?.counts?.direct || 0))).catch(() => setUnread(0))
   }, [])
-  return <MobileBottomNav role={role} activePath={pathname || '/'} onLogout={onLogout} />
+  // Close desktop menu on route change
+  useEffect(() => { setMenuOpen(false) }, [pathname])
+
+  const desktopItems = useMemo(() => {
+    if (role === 'PARENT') {
+      return [
+        { href: '/', label: 'Home' },
+        { href: '/chat', label: 'Messages' },
+        { href: '/calendar', label: 'Calendar' },
+        { href: '/parent/therapists', label: 'Therapists' },
+      ]
+    }
+    if (role === 'ADMIN') {
+      return [
+        { href: '/', label: 'Home' },
+        { href: '/calendar', label: 'Calendar' },
+        { href: '/admin/directory', label: 'Directory' },
+        { href: '/admin/settings', label: 'Admin' },
+      ]
+    }
+    return [
+      { href: '/', label: 'Home' },
+      { href: '/chat', label: 'Messages' },
+      { href: '/calendar', label: 'Calendar' },
+      { href: '/search', label: 'Search' },
+    ]
+  }, [role])
+
+  return (
+    <>
+      <DesktopTopBar
+        title={APP_TITLE}
+        onToggle={() => setMenuOpen(v => !v)}
+        open={menuOpen}
+      />
+      {/* Desktop menu with backdrop */}
+      {menuOpen && (
+        <>
+          <div aria-hidden="true" role="presentation" className="hidden md:block fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+          <div className="hidden md:block fixed top-14 right-2 z-50 w-56 rounded-md border bg-white text-gray-800 shadow-lg p-2">
+            <ul className="text-sm">
+              {desktopItems.map(item => (
+                <li key={item.href}>
+                  <Link href={item.href} className="block rounded px-2 py-2 hover:bg-gray-100" onClick={() => setMenuOpen(false)}>{item.label}</Link>
+                </li>
+              ))}
+              <li className="border-t my-1" />
+              <li>
+                <button onClick={() => { setMenuOpen(false); onLogout() }} className="w-full text-left rounded px-2 py-2 hover:bg-gray-100 text-red-600">Log out</button>
+              </li>
+            </ul>
+          </div>
+        </>
+      )}
+      <MobileBottomNav role={role} activePath={pathname || '/'} onLogout={onLogout} unread={unread} />
+    </>
+  )
 }
 
-function MobileBottomNav({ role, activePath, onLogout }: { role: string | null; activePath: string; onLogout: () => void }) {
+function MobileBottomNav({ role, activePath, onLogout, unread }: { role: string | null; activePath: string; onLogout: () => void; unread: number }) {
   // Choose 4 nav items based on role
   const items = useMemo((): Array<{ href: string; label: string; icon: JSX.Element; match: (p: string) => boolean }> => {
     if (role === 'PARENT') {
       return [
         { href: '/', label: 'Home', icon: IconHome(), match: p => p === '/' },
-        { href: '/chat', label: 'Messages', icon: IconChat(), match: p => p.startsWith('/chat') },
+        { href: '/chat', label: 'Messages', icon: IconChat(unread), match: p => p.startsWith('/chat') },
         { href: '/calendar', label: 'Calendar', icon: IconBell(), match: p => p.startsWith('/calendar') },
         { href: '/parent/therapists', label: 'Therapists', icon: IconUsers(), match: p => p.startsWith('/parent/therapists') },
       ]
@@ -40,14 +100,14 @@ function MobileBottomNav({ role, activePath, onLogout }: { role: string | null; 
     // Default (therapist)
     return [
       { href: '/', label: 'Home', icon: IconHome(), match: p => p === '/' },
-      { href: '/chat', label: 'Messages', icon: IconChat(), match: p => p.startsWith('/chat') },
+      { href: '/chat', label: 'Messages', icon: IconChat(unread), match: p => p.startsWith('/chat') },
       { href: '/calendar', label: 'Calendar', icon: IconBell(), match: p => p.startsWith('/calendar') },
       { href: '/search', label: 'Search', icon: IconCog(), match: p => p.startsWith('/search') },
     ]
-  }, [role])
+  }, [role, unread])
 
   return (
-  <nav className="fixed bottom-0 inset-x-0 z-50 bg-[#623394] text-white pb-[env(safe-area-inset-bottom)] relative">
+  <nav className="fixed bottom-0 inset-x-0 z-50 bg-[#623394] text-white pb-[env(safe-area-inset-bottom)] relative md:hidden">
   <ul className="grid grid-cols-4 pr-12">
         {items.map((it) => {
           const active = it.match(activePath)
@@ -73,6 +133,28 @@ function MobileBottomNav({ role, activePath, onLogout }: { role: string | null; 
   )
 }
 
+function DesktopTopBar({ title, onToggle, open }: { title: string; onToggle: () => void; open: boolean }) {
+  return (
+    <header className="hidden md:flex fixed top-0 inset-x-0 z-40 h-14 bg-[#623394] text-white items-center justify-center relative">
+      {/* Centered logo + title */}
+      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 select-none">
+        <span aria-hidden className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#623394] font-bold text-sm">CL</span>
+        <span className="font-semibold tracking-wide">{title}</span>
+      </div>
+      {/* Right menu toggle */}
+      <button
+        type="button"
+        aria-label="Toggle menu"
+        onClick={onToggle}
+        className="absolute right-2 p-2 rounded-md hover:bg-white/15 focus:outline-none focus-visible:ring"
+        title="Menu"
+      >
+        {IconMenu()}
+      </button>
+    </header>
+  )
+}
+
 function IconHome() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
@@ -81,11 +163,16 @@ function IconHome() {
     </svg>
   )
 }
-function IconChat() {
+function IconChat(unread?: number) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
-      <path d="M1.5 6.75A3.75 3.75 0 0 1 5.25 3h13.5A3.75 3.75 0 0 1 22.5 6.75v6a3.75 3.75 0 0 1-3.75 3.75H9l-4.94 3.296A.75.75 0 0 1 3 19.176V16.5h2.25A3.75 3.75 0 0 1 9 12.75h9.75v-6A2.25 2.25 0 0 0 16.5 4.5H5.25A2.25 2.25 0 0 0 3 6.75v2.25H1.5v-2.25Z"/>
-    </svg>
+    <span className="relative inline-flex">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
+        <path d="M1.5 6.75A3.75 3.75 0 0 1 5.25 3h13.5A3.75 3.75 0 0 1 22.5 6.75v6a3.75 3.75 0 0 1-3.75 3.75H9l-4.94 3.296A.75.75 0 0 1 3 19.176V16.5h2.25A3.75 3.75 0 0 1 9 12.75h9.75v-6A2.25 2.25 0 0 0 16.5 4.5H5.25A2.25 2.25 0 0 0 3 6.75v2.25H1.5v-2.25Z"/>
+      </svg>
+      {(unread || 0) > 0 && (
+        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-500 text-[10px] leading-none px-1.5 py-0.5 min-w-[1rem]">{Math.min(unread || 0, 99)}</span>
+      )}
+    </span>
   )
 }
 function IconUsers() {
@@ -124,6 +211,14 @@ function IconPower() {
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
       <path d="M11.25 3.75a.75.75 0 0 1 1.5 0v7.5a.75.75 0 0 1-1.5 0v-7.5Z" />
       <path d="M5.636 5.636a8.25 8.25 0 1 0 12.728 0 .75.75 0 1 0-1.06 1.061 6.75 6.75 0 1 1-10.607 0 .75.75 0 0 0-1.06-1.06Z" />
+    </svg>
+  )
+}
+
+function IconMenu() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
+      <path d="M3.75 6.75a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75ZM3.75 12a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15A.75.75 0 0 1 3.75 12Zm0 5.25a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Z"/>
     </svg>
   )
 }

@@ -24,7 +24,23 @@ export async function GET(req: NextRequest) {
         { OR: [ { audience: 'ALL' }, { audience: user.role } ] }
       ]
     }
-    const events = await prisma.event.findMany({ where, orderBy: { startAt: 'asc' } })
+    const eventsRaw = await prisma.event.findMany({
+      where,
+      orderBy: { startAt: 'asc' },
+      include: { rsvps: user ? { where: { userId: user.sub }, select: { status: true, comment: true } } : false as any }
+    })
+    // Map to a lean payload and include the current user's RSVP status if present
+    const events = eventsRaw.map((e: any) => ({
+      id: e.id,
+      title: e.title,
+      description: e.description,
+      audience: e.audience,
+      location: e.location,
+      startAt: e.startAt,
+      endAt: e.endAt,
+      rsvpStatus: Array.isArray(e.rsvps) && e.rsvps.length ? e.rsvps[0].status : null,
+      rsvpComment: Array.isArray(e.rsvps) && e.rsvps.length ? (e.rsvps[0].comment ?? null) : null,
+    }))
     return NextResponse.json({ events })
   } catch (e) {
     if (!isProd) {

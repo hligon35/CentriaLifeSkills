@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useMemo, useState } from 'react'
 
-type CalEvent = { id: string; title: string; description?: string | null; audience: string; startAt: string; endAt?: string | null; location?: string | null }
+type CalEvent = { id: string; title: string; description?: string | null; audience: string; startAt: string; endAt?: string | null; location?: string | null; rsvpStatus?: 'YES' | 'NO' | 'MAYBE' | null }
 
 export default function CalendarPage() {
   const [month, setMonth] = useState(() => new Date())
@@ -55,6 +55,22 @@ export default function CalendarPage() {
                   <li key={e.id} className="text-xs rounded bg-brand-50 border border-brand-200 px-2 py-1">
                     <div className="font-medium truncate">{e.title}</div>
                     {e.location && <div className="opacity-70 truncate">{e.location}</div>}
+                    <div className="mt-1 flex items-center gap-1">
+                      <span className="mr-1 text-[10px] text-gray-700">RSVP:</span>
+                      {(['YES','MAYBE','NO'] as const).map(val => (
+                        <button
+                          key={val}
+                          className={`rounded px-1.5 py-0.5 border ${e.rsvpStatus===val? 'bg-[#623394] text-white border-[#623394]':'bg-white text-gray-800'}`}
+                          onClick={async () => {
+                            try {
+                              await fetch('/api/events/rsvp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ eventId: e.id, status: val }) })
+                              setEvents(prev => prev.map(ev => ev.id===e.id ? { ...ev, rsvpStatus: val }: ev))
+                            } catch {}
+                          }}
+                          aria-label={`RSVP ${val}`}
+                        >{val}</button>
+                      ))}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -62,7 +78,13 @@ export default function CalendarPage() {
           )
         })}
       </div>
-      <p className="mt-4 text-xs text-gray-500">Events are filtered by your role. Admins can add events in settings or via API.</p>
+      <div className="mt-4 flex flex-col gap-2 text-sm">
+        <p className="text-gray-600">Events are filtered by your role. Admins can add events in settings or via API.</p>
+        <div className="flex items-center gap-3">
+          <a className="inline-block rounded bg-[#623394] text-white px-3 py-1" href="/appointments">Open Appointments</a>
+          <a className="inline-block rounded border px-3 py-1" href="/therapist/availability">Manage Availability (Therapists)</a>
+        </div>
+      </div>
     </main>
   )
 }
