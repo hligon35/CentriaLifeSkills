@@ -14,7 +14,7 @@ type Post = {
   fileUrl?: string
 }
 
-export default function Home(_props: { headerFirst?: boolean } = {}) {
+export default function Home(_props: any) {
   const [posts, setPosts] = useState<Post[]>([])
   const [role, setRole] = useState<string | null>(null)
   const [allowLikes, setAllowLikes] = useState(true)
