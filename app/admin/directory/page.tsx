@@ -30,6 +30,7 @@ export default function AdminDirectoryPage() {
   const [csvType, setCsvType] = useState<'users' | 'students'>('users')
   const [status, setStatus] = useState<string>('')
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
+  const [approvalList, setApprovalList] = useState<Set<string>>(new Set())
   const [bulkTitle, setBulkTitle] = useState('')
   const [bulkBody, setBulkBody] = useState('')
   const [bulkExpiresAt, setBulkExpiresAt] = useState('')
@@ -50,6 +51,14 @@ export default function AdminDirectoryPage() {
     fetch(`/api/directory/students?search=${encodeURIComponent(stQuery)}`)
       .then(r => r.json()).then(d => setStudents(d.students || [])).catch(() => setStudents([]))
   }, [stQuery])
+
+  // Load per-user posting approval list
+  useEffect(() => {
+    fetch('/api/admin/moderation/approval-list')
+      .then(r => r.json())
+      .then(d => setApprovalList(new Set<string>((d.userIds || []) as string[])))
+      .catch(() => setApprovalList(new Set()))
+  }, [])
 
   const importCsv = async () => {
     setStatus('Importing...')
@@ -79,7 +88,14 @@ export default function AdminDirectoryPage() {
                 <Image src={safeAvatar(u.photoUrl)} alt={u.name||'User'} width={32} height={32} className="h-8 w-8 rounded-full" />
                 <div className="flex-1">
                   <div className="text-sm font-medium">{u.name || u.email}</div>
-                  <div className="text-xs text-gray-500">{u.role}{u.email ? ` · ${u.email}` : ''}</div>
+                  <div className="text-xs text-gray-500 flex items-center gap-2">
+                    <span>{u.role}{u.email ? ` · ${u.email}` : ''}</span>
+                    {approvalList.has(u.id) && (
+                      <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200" title="Requires approval to post">
+                        Needs approval
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={() => { setMemoTarget({ id: u.id, label: u.name || u.email || 'User' }); setMemoOpen(true) }}
@@ -114,7 +130,7 @@ export default function AdminDirectoryPage() {
                   {s.parent && (
                     <div className="inline-flex items-center gap-1 w-fit">
                       <input aria-label={`Select parent ${s.parent?.name || ''}`} type="checkbox" className="mt-0.5" checked={selectedUserIds.includes((s.parent as any).id)} onChange={e => setSelectedUserIds(prev => e.target.checked ? [...new Set([...prev, (s.parent as any).id])] : prev.filter(x => x !== (s.parent as any).id))} />
-                      <Badge avatar={s.parent.photoUrl} label={s.parent.name||'Parent'} />
+                      <Badge avatar={s.parent.photoUrl} label={`${s.parent.name||'Parent'}${approvalList.has((s.parent as any).id) ? ' • Needs approval' : ''}`} />
                       <button
                         className="text-[11px] rounded border px-2 py-0.5"
                         onClick={() => { setMemoTarget({ id: (s.parent as any).id, label: s.parent?.name || 'Parent' }); setMemoOpen(true) }}
@@ -125,7 +141,7 @@ export default function AdminDirectoryPage() {
                   {s.amTherapist && (
                     <div className="inline-flex items-center gap-1 w-fit">
                       <input aria-label={`Select AM therapist ${s.amTherapist?.name || ''}`} type="checkbox" className="mt-0.5" checked={selectedUserIds.includes((s.amTherapist as any).id)} onChange={e => setSelectedUserIds(prev => e.target.checked ? [...new Set([...prev, (s.amTherapist as any).id])] : prev.filter(x => x !== (s.amTherapist as any).id))} />
-                      <Badge avatar={s.amTherapist.photoUrl} label={s.amTherapist.name||'AM Therapist'} />
+                      <Badge avatar={s.amTherapist.photoUrl} label={`${s.amTherapist.name||'AM Therapist'}${approvalList.has((s.amTherapist as any).id) ? ' • Needs approval' : ''}`} />
                       <button
                         className="text-[11px] rounded border px-2 py-0.5"
                         onClick={() => { setMemoTarget({ id: (s.amTherapist as any).id, label: s.amTherapist?.name || 'AM Therapist' }); setMemoOpen(true) }}
@@ -136,7 +152,7 @@ export default function AdminDirectoryPage() {
                   {s.pmTherapist && (
                     <div className="inline-flex items-center gap-1 w-fit">
                       <input aria-label={`Select PM therapist ${s.pmTherapist?.name || ''}`} type="checkbox" className="mt-0.5" checked={selectedUserIds.includes((s.pmTherapist as any).id)} onChange={e => setSelectedUserIds(prev => e.target.checked ? [...new Set([...prev, (s.pmTherapist as any).id])] : prev.filter(x => x !== (s.pmTherapist as any).id))} />
-                      <Badge avatar={s.pmTherapist.photoUrl} label={s.pmTherapist.name||'PM Therapist'} />
+                      <Badge avatar={s.pmTherapist.photoUrl} label={`${s.pmTherapist.name||'PM Therapist'}${approvalList.has((s.pmTherapist as any).id) ? ' • Needs approval' : ''}`} />
                       <button
                         className="text-[11px] rounded border px-2 py-0.5"
                         onClick={() => { setMemoTarget({ id: (s.pmTherapist as any).id, label: s.pmTherapist?.name || 'PM Therapist' }); setMemoOpen(true) }}
@@ -150,6 +166,52 @@ export default function AdminDirectoryPage() {
             {students.length === 0 && <li className="text-sm text-gray-600">No students found.</li>}
           </ul>
         </section>
+      </div>
+
+      <div className="mt-8 border-t pt-4">
+        <h2 className="font-medium mb-2">Posting approval for selected users</h2>
+        <div className="text-xs text-gray-600 mb-2">Selected: {selectedUserIds.length}</div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            className="rounded border px-3 py-1 text-sm"
+            onClick={async () => {
+              if (selectedUserIds.length === 0) { setStatus('No users selected'); return }
+              setStatus('Updating approval list...')
+              const res = await fetch('/api/admin/moderation/approval-list', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userIds: selectedUserIds, require: true }) })
+              const j = await res.json()
+              if (!res.ok) { setStatus(j.error || 'Failed to update approval list'); return }
+              // Refresh list
+              const g = await fetch('/api/admin/moderation/approval-list')
+              const gj = await g.json()
+              setApprovalList(new Set<string>((gj.userIds || []) as string[]))
+              setStatus(`Now requiring approval for ${selectedUserIds.length} user(s)`) 
+            }}
+          >Require approval</button>
+          <button
+            className="rounded border px-3 py-1 text-sm"
+            onClick={async () => {
+              if (selectedUserIds.length === 0) { setStatus('No users selected'); return }
+              setStatus('Updating approval list...')
+              const res = await fetch('/api/admin/moderation/approval-list', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userIds: selectedUserIds, require: false }) })
+              const j = await res.json()
+              if (!res.ok) { setStatus(j.error || 'Failed to update approval list'); return }
+              const g = await fetch('/api/admin/moderation/approval-list')
+              const gj = await g.json()
+              setApprovalList(new Set<string>((gj.userIds || []) as string[]))
+              setStatus(`Removed approval requirement for ${selectedUserIds.length} user(s)`) 
+            }}
+          >Allow posting</button>
+          <button className="rounded border px-3 py-1 text-sm" onClick={() => setSelectedUserIds([])}>Clear selection</button>
+          <button className="rounded border px-3 py-1 text-sm" onClick={async () => {
+            setStatus('Refreshing...')
+            const g = await fetch('/api/admin/moderation/approval-list')
+            const gj = await g.json()
+            setApprovalList(new Set<string>((gj.userIds || []) as string[]))
+            setStatus('Approval list refreshed')
+          }}>Refresh list</button>
+          <span className="text-sm text-gray-600">{status}</span>
+        </div>
+        <p className="text-xs text-gray-500 mt-1">Tip: A "Needs approval" tag appears next to users currently configured to require approval before posting.</p>
       </div>
 
       <div className="mt-8 border-t pt-4">

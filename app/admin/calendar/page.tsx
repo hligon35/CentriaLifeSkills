@@ -6,38 +6,16 @@ type Student = { id: string; name: string }
 
 export default function AdminCalendarPage() {
   const [tab, setTab] = useState<'schedule-post'|'meeting'|'work-schedule'>('schedule-post')
-  const [menuOpen, setMenuOpen] = useState(false)
+  // Removed menuOpen state and Add button logic
   return (
     <main className="mx-auto max-w-3xl p-4">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-center sm:text-left">Admin Calendar</h1>
-        <div className="relative">
-          <button
-            className="rounded border px-3 py-1.5 text-sm"
-            onClick={() => setMenuOpen(v => !v)}
-          >Add</button>
-          {menuOpen && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} aria-hidden="true" />
-              <div className="absolute right-0 z-20 mt-2 w-72 overflow-hidden rounded border bg-white shadow">
-                <button className="block w-full px-3 py-2 text-left text-sm hover:bg-gray-50" onClick={() => { setTab('schedule-post'); setMenuOpen(false) }}>
-                  Upload flyer/document and schedule to message board
-                </button>
-                <button className="block w-full px-3 py-2 text-left text-sm hover:bg-gray-50" onClick={() => { setTab('meeting'); setMenuOpen(false) }}>
-                  Request or schedule a therapist meeting
-                </button>
-                <button className="block w-full px-3 py-2 text-left text-sm hover:bg-gray-50" onClick={() => { setTab('work-schedule'); setMenuOpen(false) }}>
-                  Post therapist work schedules (single or CSV)
-                </button>
-              </div>
-            </>
-          )}
-        </div>
       </div>
       <div className="mb-4 flex gap-2">
-        <button className={btn(tab==='schedule-post')} onClick={()=>setTab('schedule-post')}>Schedule Board Post</button>
+        <button className={btn(tab==='schedule-post')} onClick={()=>setTab('schedule-post')}>Message Board</button>
         <button className={btn(tab==='meeting')} onClick={()=>setTab('meeting')}>Request/Schedule Meeting</button>
-        <button className={btn(tab==='work-schedule')} onClick={()=>setTab('work-schedule')}>Therapist Work Schedules</button>
+        <button className={btn(tab==='work-schedule')} onClick={()=>setTab('work-schedule')}>Upload Work Schedules</button>
       </div>
       {tab === 'schedule-post' && <SchedulePost />}
       {tab === 'meeting' && <ScheduleMeeting />}
@@ -84,20 +62,45 @@ function SchedulePost() {
     } catch (e: any) { setStatus(e.message) } finally { setBusy(false) }
   }
 
+  async function postNow() {
+    setBusy(true); setStatus('')
+    try {
+      const fileUrl = await uploadFileIfAny()
+      const payload: any = { title, body, published: true }
+      if (fileUrl) payload.fileUrl = fileUrl
+      // Ignore publishAt for immediate post
+      const res = await fetch('/api/board', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const j = await res.json(); if (!res.ok) throw new Error(j.error || 'Failed to post')
+      setStatus('Posted')
+      setTitle(''); setBody(''); setPublishAt(''); setFile(null)
+    } catch (e: any) { setStatus(e.message) } finally { setBusy(false) }
+  }
+
   return (
     <section className="rounded border bg-white p-4">
-      <div className="font-medium mb-2">Schedule a message board post</div>
+      <div className="font-medium mb-2">Post A Message</div>
       <input className="mb-2 w-full rounded border px-3 py-2" placeholder="Title" value={title} onChange={e=>setTitle(e.target.value)} />
       <textarea className="mb-2 w-full rounded border px-3 py-2" placeholder="Body" value={body} onChange={e=>setBody(e.target.value)} />
       <div className="grid gap-2 sm:grid-cols-2 mb-2">
-        <label className="text-sm">Publish at (optional)
+        <label className="text-sm">Publish or Schedule
           <input type="datetime-local" value={publishAt} onChange={e=>setPublishAt(e.target.value)} className="mt-1 w-full rounded border px-2 py-2" />
         </label>
         <label className="text-sm">Attach file (optional)
           <input type="file" onChange={e=>setFile(e.target.files?.[0] || null)} className="mt-1 w-full rounded border px-2 py-2" />
         </label>
       </div>
-      <button disabled={busy || !title.trim()} onClick={schedule} className="rounded border px-3 py-2 text-sm">{busy ? 'Scheduling…' : 'Schedule'}</button>
+      <div className="flex gap-2">
+        <button
+          disabled={busy || !title.trim()}
+          onClick={postNow}
+          className="rounded border px-3 py-2 text-sm"
+        >{busy ? 'Posting…' : 'Post Now'}</button>
+        <button
+          disabled={busy || !title.trim()}
+          onClick={schedule}
+          className="rounded border px-3 py-2 text-sm"
+        >{busy ? 'Scheduling…' : 'Schedule'}</button>
+      </div>
       {status && <div className="mt-2 text-xs text-gray-600">{status}</div>}
     </section>
   )
@@ -178,7 +181,7 @@ function WorkSchedules() {
 
   return (
     <section className="rounded border bg-white p-4">
-      <div className="font-medium mb-2">Post therapist work schedules</div>
+      <div className="font-medium mb-2">Post Schedules</div>
       <p className="text-xs text-gray-600 mb-2">Paste CSV with columns: therapistEmail, studentName(optional), startAt(ISO), endAt(ISO)</p>
       <textarea className="w-full rounded border p-2 mb-2" rows={6} value={csv} onChange={e=>setCsv(e.target.value)} placeholder="therapist@org.com,Student A,2025-09-14T09:00:00Z,2025-09-14T17:00:00Z" />
       <button disabled={busy || !csv.trim()} onClick={uploadCsv} className="rounded border px-3 py-2 text-sm">{busy ? 'Uploading…' : 'Upload CSV'}</button>

@@ -41,9 +41,10 @@ export default function Header() {
     if (role === 'ADMIN') {
       return [
         { href: '/', label: 'Home' },
-        { href: '/admin/calendar', label: 'Calendar' },
-        { href: '/admin/directory', label: 'Directory' },
-        { href: '/admin/settings', label: 'Admin' },
+        { href: '/admin?tab=messages', label: 'Messages' },
+        { href: '/admin?tab=calendar', label: 'Calendar' },
+        { href: '/admin?tab=directory', label: 'Directory' },
+        { href: '/admin?tab=settings', label: 'Admin' },
       ]
     }
     return [
@@ -125,9 +126,10 @@ function MobileBottomNav({ role, activePath, onLogout, unread }: { role: string 
   if (role === 'ADMIN') {
       return [
         { href: '/', label: 'Home', icon: PngIcon(homePng), match: p => p === '/' },
-        { href: '/admin/calendar', label: 'Calendar', icon: PngIcon(calendarPng), match: p => p.startsWith('/admin/calendar') },
-        { href: '/admin/directory', label: 'Directory', icon: PngIcon(profilePng), match: p => p.startsWith('/admin/directory') },
-        { href: '/admin/settings', label: 'Admin', icon: PngIcon(settingsPng), match: p => p.startsWith('/admin/settings') },
+        { href: '/admin?tab=messages', label: 'Messages', icon: PngIcon(messagesPng, unread), match: p => p.startsWith('/admin') },
+        { href: '/admin?tab=calendar', label: 'Calendar', icon: PngIcon(calendarPng), match: p => p.startsWith('/admin') },
+        { href: '/admin?tab=directory', label: 'Directory', icon: PngIcon(profilePng), match: p => p.startsWith('/admin') },
+        { href: '/admin?tab=settings', label: 'Admin', icon: PngIcon(settingsPng), match: p => p.startsWith('/admin') },
       ]
     }
     // Default (therapist)

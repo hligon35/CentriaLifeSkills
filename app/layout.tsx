@@ -10,9 +10,9 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-    <body className="min-h-screen bg-gray-50 text-gray-900">
-  <Header />
-  <div className="pt-14 md:pt-14 pb-20">{children}</div>
+  <body className="min-h-screen bg-gray-50 text-gray-900">
+    <Header />
+    <div className="pb-20 md:pt-14">{children}</div>
         <footer className="mt-10 py-6 text-center text-xs text-gray-500">
           {/* Insert privacy policy link here for GDPR/FERPA */}
           © {new Date().getFullYear()} BuddyBoard
