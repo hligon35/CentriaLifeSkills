@@ -1,5 +1,6 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import Image from 'next/image'
 
 type PendingPost = {
   id: string
@@ -21,7 +22,7 @@ export default function AdminModerationPage() {
   const [category, setCategory] = useState('')
   const [author, setAuthor] = useState('')
 
-  async function refresh(nextPage = page) {
+  const refresh = useCallback(async (nextPage = page) => {
     const q = new URLSearchParams()
     q.set('page', String(nextPage))
     q.set('pageSize', String(pageSize))
@@ -34,9 +35,9 @@ export default function AdminModerationPage() {
       setTotal(j.total || 0)
       setPage(j.page || nextPage)
     }
-  }
+  }, [author, category, page, pageSize])
 
-  useEffect(() => { refresh(1) }, [category, author, pageSize])
+  useEffect(() => { refresh(1) }, [refresh])
 
   async function approve(id: string) {
     setBusyId(id)
@@ -85,7 +86,7 @@ export default function AdminModerationPage() {
             <div className="text-xs text-gray-600">By: {p.author?.name || p.author?.email || 'Unknown'}{p.category ? ` • ${p.category}` : ''}</div>
             <div className="mt-2 text-sm whitespace-pre-wrap">{p.body}</div>
             {p.imageUrl && (
-              <img src={p.imageUrl} alt="post" className="mt-2 max-h-60 rounded border object-cover" />
+              <Image src={p.imageUrl} alt="post" width={800} height={600} className="mt-2 max-h-60 w-full rounded border object-cover" />
             )}
             <div className="mt-3 flex gap-2">
               <button className="rounded border px-3 py-1 text-sm" disabled={busyId===p.id} onClick={()=>approve(p.id)}>{busyId===p.id ? 'Working…' : 'Approve'}</button>

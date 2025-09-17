@@ -211,7 +211,7 @@ export default function AdminDirectoryPage() {
           }}>Refresh list</button>
           <span className="text-sm text-gray-600">{status}</span>
         </div>
-        <p className="text-xs text-gray-500 mt-1">Tip: A "Needs approval" tag appears next to users currently configured to require approval before posting.</p>
+  <p className="text-xs text-gray-500 mt-1">Tip: A &quot;Needs approval&quot; tag appears next to users currently configured to require approval before posting.</p>
       </div>
 
       <div className="mt-8 border-t pt-4">

@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 
 type SearchResults = {
@@ -13,16 +13,16 @@ export default function SearchPage() {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<SearchResults>({ posts: [], staff: [], students: [], events: [] })
 
-  useEffect(() => {
-    const id = setTimeout(() => { run() }, 250)
-    return () => clearTimeout(id)
-  }, [q])
-
-  async function run() {
+  const run = useCallback(async () => {
     if (!q.trim()) { setResults({ posts: [], staff: [], students: [], events: [] }); return }
     const r = await fetch(`/api/search?q=${encodeURIComponent(q)}`)
     setResults(await r.json())
-  }
+  }, [q])
+
+  useEffect(() => {
+    const id = setTimeout(() => { run() }, 250)
+    return () => clearTimeout(id)
+  }, [run])
 
   return (
     <main className="mx-auto max-w-3xl p-4">

@@ -252,7 +252,7 @@ function PostLinkPreview({ body }: { body: string }) {
     <a href={url} target="_blank" rel="noopener noreferrer" className="mt-3 block rounded border hover:bg-gray-50">
       <div className="flex gap-3 p-3">
         {data.image && (
-          <img src={data.image} alt={data.title || 'preview'} className="h-20 w-28 rounded object-cover border" />
+          <Image src={data.image} alt={data.title || 'preview'} width={112} height={80} className="h-20 w-28 rounded object-cover border" />
         )}
         <div className="min-w-0">
           <div className="text-sm font-medium line-clamp-1">{data.title || url}</div>

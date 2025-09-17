@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 type WeekData = { weekStart: string; totalMs: number; days: Record<string, number> }
 
@@ -15,14 +15,14 @@ export default function ClientTimesheets() {
   const [data, setData] = useState<WeekData | null>(null)
   const [loading, setLoading] = useState(true)
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true)
     const res = await fetch(`/api/therapist/timesheet?weekStart=${encodeURIComponent(weekStart)}`)
     const json = await res.json().catch(()=>null)
     setData(json)
     setLoading(false)
-  }
-  useEffect(()=>{ load() }, [weekStart])
+  }, [weekStart])
+  useEffect(()=>{ load() }, [load])
 
   function shiftWeek(deltaDays: number) {
     const d = new Date(weekStart)
