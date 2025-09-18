@@ -4,7 +4,10 @@ import { signJwt } from '@/lib/auth'
 import { cookies } from 'next/headers'
 
 export async function POST(req: NextRequest) {
-  if (process.env.NODE_ENV === 'production') return NextResponse.json({ error: 'Disabled in production' }, { status: 403 })
+  // Allow enabling this dev shortcut in production only if an explicit override env var is set.
+  if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_DEV_SSO) {
+    return NextResponse.json({ error: 'Disabled in production' }, { status: 403 })
+  }
   const { role } = await req.json()
   if (!['THERAPIST', 'PARENT', 'ADMIN'].includes(role)) return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
   const email = role === 'THERAPIST' ? 'therapist@example.com' : role === 'ADMIN' ? 'admin@example.com' : 'parent@example.com'
@@ -15,5 +18,9 @@ export async function POST(req: NextRequest) {
   const token = await signJwt({ sub, role: role as any, name })
   const isProd = String(process.env.NODE_ENV) === 'production'
   cookies().set('token', token, { httpOnly: true, secure: isProd, sameSite: 'strict', path: '/' })
-  return NextResponse.json({ ok: true })
+  const res = NextResponse.json({ ok: true })
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DEV_SSO) {
+    res.headers.set('Warning', '199 - Dev SSO override active; remove ALLOW_DEV_SSO to disable')
+  }
+  return res
 }

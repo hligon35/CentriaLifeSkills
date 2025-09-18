@@ -4,218 +4,206 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL") // Insert organization-specific database credentials
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id                    String              @id @default(cuid())
-  email                 String              @unique
-  name                  String?
-  role                  String
-  passwordHash          String
-  photoUrl              String?
-  childProfile          String?
-  language              String?             // preferred language code, e.g., 'en', 'es'
-  icsToken              String?             @unique // token for personal ICS feed
-  createdAt             DateTime            @default(now())
-  messagesSent          Message[]           @relation("messagesSent")
-  messagesRecv          Message[]           @relation("messagesRecv")
-  posts                 Post[]
-  comments              Comment[]
-  notifications         Notification[]
-  likes                 PostLike[]
-  // Back-relations for Student model
-  studentsAsParent      Student[]           @relation("parent")
-  studentsAsAmTherapist Student[]           @relation("amTherapist")
-  studentsAsPmTherapist Student[]           @relation("pmTherapist")
-  // BCBA (head therapist) assignment
-  studentsAsBcba       Student[]           @relation("bcba")
-  // Back-relations added to satisfy relations
-  urgentMemoReceipts    UrgentMemoReceipt[]
-  auditLogs             AuditLog[]
-  preferences           NotificationPreference[]
-  availability          TherapistAvailability[]
-  appointmentsAsTherapist Appointment[]     @relation("apptTherapist")
-  appointmentsAsParent    Appointment[]     @relation("apptParent")
-  rsvps                 EventRsvp[]
-  messageTemplates      MessageTemplate[]
-  notesAuthored         StudentNote[]
-  dailyLogsAuthored     DailyLog[]
+  id                      String                   @id @default(cuid())
+  email                   String                   @unique
+  name                    String?
+  role                    String
+  passwordHash            String
+  photoUrl                String?
+  childProfile            String?
+  createdAt               DateTime                 @default(now())
+  icsToken                String?                  @unique
+  language                String?
+  appointmentsAsParent    Appointment[]            @relation("apptParent")
+  appointmentsAsTherapist Appointment[]            @relation("apptTherapist")
+  auditLogs               AuditLog[]
+  clockEntries            ClockEntry[]
+  comments                Comment[]
+  dailyLogsAuthored       DailyLog[]
+  rsvps                   EventRsvp[]
+  messagesRecv            Message[]                @relation("messagesRecv")
+  messagesSent            Message[]                @relation("messagesSent")
+  messageTemplates        MessageTemplate[]
+  notifications           Notification[]
+  preferences             NotificationPreference[]
+  posts                   Post[]
+  likes                   PostLike[]
+  profileChangeRequests   ProfileChangeRequest[]
   progressReportsAuthored ProgressReport[]
-  profileChangeRequests ProfileChangeRequest[]
-  workShifts            WorkShift[]
-  clockEntries          ClockEntry[]
+  studentsAsBcba          Student[]                @relation("bcba")
+  studentsAsPmTherapist   Student[]                @relation("pmTherapist")
+  studentsAsAmTherapist   Student[]                @relation("amTherapist")
+  studentsAsParent        Student[]                @relation("parent")
+  notesAuthored           StudentNote[]
+  availability            TherapistAvailability[]
+  urgentMemoReceipts      UrgentMemoReceipt[]
+  workShifts              WorkShift[]
 }
 
 model Message {
-  id         String    @id @default(cuid())
-  sender     User      @relation(fields: [senderId], references: [id], name: "messagesSent")
-  senderId   String
-  receiver   User      @relation(fields: [receiverId], references: [id], name: "messagesRecv")
-  receiverId String
-  content    String // ciphertext if E2EE
-  mediaUrl   String?
-  mediaType  String?
-  iv         String? // E2EE IV/base64
-  createdAt  DateTime  @default(now())
-  readAt     DateTime?
-  channel    String    @default("DIRECT") // DIRECT | STAFF | NOTICE
+  id          String              @id @default(cuid())
+  senderId    String
+  receiverId  String
+  content     String
+  mediaUrl    String?
+  mediaType   String?
+  iv          String?
+  createdAt   DateTime            @default(now())
+  readAt      DateTime?
+  channel     String              @default("DIRECT")
+  receiver    User                @relation("messagesRecv", fields: [receiverId], references: [id])
+  sender      User                @relation("messagesSent", fields: [senderId], references: [id])
   attachments MessageAttachment[]
 }
 
 model MessageAttachment {
   id        String   @id @default(cuid())
-  message   Message  @relation(fields: [messageId], references: [id])
   messageId String
-  url       String   // e.g., s3://bucket/key or https url
+  url       String
   mimeType  String
-  duration  Int?     // seconds for audio/video
+  duration  Int?
   createdAt DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id])
 }
 
 model Post {
   id        String     @id @default(cuid())
-  author    User       @relation(fields: [authorId], references: [id])
   authorId  String
   title     String
-  body      String // can be markdown; sanitize on render
+  body      String
   imageUrl  String?
   fileUrl   String?
   createdAt DateTime   @default(now())
-  comments  Comment[]
-  likes     PostLike[]
   pinned    Boolean    @default(false)
-  category  String?    // e.g., ANNOUNCEMENT | EVENT | NEWSLETTER
-  tags      String?    // comma-separated for SQLite
+  category  String?
+  tags      String?
   published Boolean    @default(true)
   publishAt DateTime?
+  comments  Comment[]
+  author    User       @relation(fields: [authorId], references: [id])
+  likes     PostLike[]
 
   @@index([publishAt])
 }
 
 model Comment {
   id        String   @id @default(cuid())
-  post      Post     @relation(fields: [postId], references: [id])
   postId    String
-  author    User     @relation(fields: [authorId], references: [id])
   authorId  String
   body      String
   createdAt DateTime @default(now())
+  author    User     @relation(fields: [authorId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id])
 }
 
 model Notification {
   id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id])
   userId    String
   type      String
   payload   String
-  channel   String // in-app, email, sms
-  status    String // queued, sent, failed, read
+  channel   String
+  status    String
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model PostLike {
-  post      Post     @relation(fields: [postId], references: [id])
   postId    String
-  user      User     @relation(fields: [userId], references: [id])
   userId    String
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id])
 
   @@id([postId, userId])
 }
 
-// Note: SQLite connector does not support enums. Using String for `role`.
-
 model Student {
-  id            String   @id @default(cuid())
+  id            String           @id @default(cuid())
   name          String
-  parent        User     @relation("parent", fields: [parentId], references: [id])
   parentId      String
-  amTherapist   User     @relation("amTherapist", fields: [amTherapistId], references: [id])
   amTherapistId String
-  pmTherapist   User     @relation("pmTherapist", fields: [pmTherapistId], references: [id])
   pmTherapistId String
-  // Assigned BCBA (head therapist) overseeing this student
-  bcba          User?    @relation("bcba", fields: [bcbaId], references: [id])
   bcbaId        String?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime         @default(now())
   photoUrl      String?
-  notes         StudentNote[]
+  appointments  Appointment[]
   dailyLogs     DailyLog[]
   progress      ProgressReport[]
-  appointments  Appointment[]
+  bcba          User?            @relation("bcba", fields: [bcbaId], references: [id])
+  pmTherapist   User             @relation("pmTherapist", fields: [pmTherapistId], references: [id])
+  amTherapist   User             @relation("amTherapist", fields: [amTherapistId], references: [id])
+  parent        User             @relation("parent", fields: [parentId], references: [id])
+  notes         StudentNote[]
   workShifts    WorkShift[]
 }
 
-// Admin-configured urgent memos displayed to users on login
 model UrgentMemo {
   id           String              @id @default(cuid())
   title        String
   body         String
   active       Boolean             @default(true)
-  audience     String // ALL | THERAPIST | PARENT | USER
+  audience     String
   targetUserId String?
   createdAt    DateTime            @default(now())
   expiresAt    DateTime?
   receipts     UrgentMemoReceipt[]
 }
 
-// Simple application settings key/value store (strings for SQLite compatibility)
 model AppSetting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
 }
 
-// Track when a user has acknowledged/read a memo, so it won't be shown again
 model UrgentMemoReceipt {
   id     String     @id @default(cuid())
-  memo   UrgentMemo @relation(fields: [memoId], references: [id])
   memoId String
-  user   User       @relation(fields: [userId], references: [id])
   userId String
   readAt DateTime   @default(now())
+  user   User       @relation(fields: [userId], references: [id])
+  memo   UrgentMemo @relation(fields: [memoId], references: [id])
 
   @@unique([memoId, userId])
 }
 
-// Simple audit log for admin actions
 model AuditLog {
   id        String   @id @default(cuid())
-  user      User?    @relation(fields: [userId], references: [id])
   userId    String?
   action    String
   entity    String
   entityId  String?
   details   String?
   createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
 }
 
-// School calendar events
 model Event {
-  id           String   @id @default(cuid())
+  id           String      @id @default(cuid())
   title        String
   description  String?
   location     String?
-  audience     String // ALL | THERAPIST | PARENT | USER
+  audience     String
   targetUserId String?
   startAt      DateTime
   endAt        DateTime
-  createdAt    DateTime @default(now())
-
+  createdAt    DateTime    @default(now())
   rsvps        EventRsvp[]
 
   @@index([startAt])
 }
 
 model EventRsvp {
-  event     Event   @relation(fields: [eventId], references: [id])
   eventId   String
-  user      User    @relation(fields: [userId], references: [id])
   userId    String
-  status    String  // YES | NO | MAYBE
+  status    String
   comment   String?
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  event     Event    @relation(fields: [eventId], references: [id])
 
   @@id([eventId, userId])
 }
@@ -224,126 +212,123 @@ model MessageTemplate {
   id          String   @id @default(cuid())
   title       String
   body        String
-  tags        String?  // comma-separated tags
-  scope       String   @default("ALL") // ALL | STAFF | PARENT
-  createdBy   User     @relation(fields: [createdById], references: [id])
+  tags        String?
+  scope       String   @default("ALL")
   createdById String
   createdAt   DateTime @default(now())
+  createdBy   User     @relation(fields: [createdById], references: [id])
 }
 
 model NotificationPreference {
-  id      String @id @default(cuid())
-  user    User   @relation(fields: [userId], references: [id])
-  userId  String
-  key     String
-  value   String
+  id     String @id @default(cuid())
+  userId String
+  key    String
+  value  String
+  user   User   @relation(fields: [userId], references: [id])
 
   @@unique([userId, key])
 }
 
 model StudentNote {
   id         String   @id @default(cuid())
-  student    Student  @relation(fields: [studentId], references: [id])
   studentId  String
-  author     User     @relation(fields: [authorId], references: [id])
   authorId   String
   body       String
-  visibility String   @default("STAFF") // STAFF | PARENT
+  visibility String   @default("STAFF")
   createdAt  DateTime @default(now())
+  author     User     @relation(fields: [authorId], references: [id])
+  student    Student  @relation(fields: [studentId], references: [id])
 }
 
 model DailyLog {
   id         String   @id @default(cuid())
-  student    Student  @relation(fields: [studentId], references: [id])
   studentId  String
-  author     User     @relation(fields: [authorId], references: [id])
   authorId   String
   date       DateTime @default(now())
-  activities String?  // free text or JSON string
+  activities String?
   meals      String?
   naps       String?
   notes      String?
   createdAt  DateTime @default(now())
+  author     User     @relation(fields: [authorId], references: [id])
+  student    Student  @relation(fields: [studentId], references: [id])
 }
 
 model ProgressReport {
-  id          String   @id @default(cuid())
-  student     Student  @relation(fields: [studentId], references: [id])
+  id          String    @id @default(cuid())
   studentId   String
-  author      User     @relation(fields: [authorId], references: [id])
   authorId    String
   title       String
   body        String
-  goalsJson   String?  // serialized goals/milestones
+  goalsJson   String?
   periodStart DateTime?
   periodEnd   DateTime?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
+  author      User      @relation(fields: [authorId], references: [id])
+  student     Student   @relation(fields: [studentId], references: [id])
 }
 
 model TherapistAvailability {
   id          String   @id @default(cuid())
-  therapist   User     @relation(fields: [therapistId], references: [id])
   therapistId String
-  weekday     Int      // 0=Sun..6=Sat
-  startTime   String   // HH:mm
-  endTime     String   // HH:mm
+  weekday     Int
+  startTime   String
+  endTime     String
   createdAt   DateTime @default(now())
+  therapist   User     @relation(fields: [therapistId], references: [id])
 
   @@index([therapistId, weekday])
 }
 
 model Appointment {
-  id            String   @id @default(cuid())
-  therapist     User     @relation("apptTherapist", fields: [therapistId], references: [id])
-  therapistId   String
-  parent        User     @relation("apptParent", fields: [parentId], references: [id])
-  parentId      String
-  student       Student  @relation(fields: [studentId], references: [id])
-  studentId     String
-  startAt       DateTime
-  endAt         DateTime
-  status        String   @default("PENDING") // PENDING | CONFIRMED | CANCELLED
-  createdAt     DateTime @default(now())
+  id          String   @id @default(cuid())
+  therapistId String
+  parentId    String
+  studentId   String
+  startAt     DateTime
+  endAt       DateTime
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  student     Student  @relation(fields: [studentId], references: [id])
+  parent      User     @relation("apptParent", fields: [parentId], references: [id])
+  therapist   User     @relation("apptTherapist", fields: [therapistId], references: [id])
 
   @@index([therapistId, startAt])
 }
 
-// Therapist-submitted profile change requests (admin review)
 model ProfileChangeRequest {
-  id         String   @id @default(cuid())
-  user       User     @relation(fields: [userId], references: [id])
+  id         String    @id @default(cuid())
   userId     String
-  fieldsJson String   // JSON of requested field changes (email, name, phone, etc.)
-  status     String   @default("PENDING") // PENDING | APPROVED | REJECTED
-  reason     String?  // optional admin note for rejection/approval
-  createdAt  DateTime @default(now())
+  fieldsJson String
+  status     String    @default("PENDING")
+  reason     String?
+  createdAt  DateTime  @default(now())
   reviewedAt DateTime?
+  user       User      @relation(fields: [userId], references: [id])
 
   @@index([userId, status])
 }
 
-// Therapist work schedules (planned shifts)
 model WorkShift {
   id          String   @id @default(cuid())
-  therapist   User     @relation(fields: [therapistId], references: [id])
   therapistId String
-  student     Student? @relation(fields: [studentId], references: [id])
   studentId   String?
   startAt     DateTime
   endAt       DateTime
-  status      String   @default("SCHEDULED") // SCHEDULED | COMPLETED | MISSED | CANCELLED
+  status      String   @default("SCHEDULED")
   createdAt   DateTime @default(now())
+  student     Student? @relation(fields: [studentId], references: [id])
+  therapist   User     @relation(fields: [therapistId], references: [id])
 
   @@index([therapistId, startAt])
 }
 
-// Therapist clock-in/out entries
 model ClockEntry {
-  id          String   @id @default(cuid())
-  therapist   User     @relation(fields: [therapistId], references: [id])
+  id          String    @id @default(cuid())
   therapistId String
-  startedAt   DateTime @default(now())
+  startedAt   DateTime  @default(now())
   endedAt     DateTime?
+  therapist   User      @relation(fields: [therapistId], references: [id])
 
   @@index([therapistId, startedAt])
 }
