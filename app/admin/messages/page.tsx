@@ -2,6 +2,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import { safeAvatar } from '@/lib/media'
+import profilePng from '@/icons/profile.png'
 
 type Student = { id: string; name: string; parent?: Participant; amTherapist?: Participant; pmTherapist?: Participant }
 type Message = { id: string; senderId: string; receiverId: string; content: string; createdAt: string }
