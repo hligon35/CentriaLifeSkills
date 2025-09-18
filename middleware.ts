@@ -18,6 +18,28 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get('token')?.value
   const url = new URL(req.url)
   const path = url.pathname
+  // Single entrypoint logic:
+  // 1. Unauthenticated: any protected or root/page access (except /login and public assets) -> /login with returnTo
+  // 2. Authenticated: /login should bounce to role home
+  const isLogin = path === '/login'
+  const isPublicAsset = path.startsWith('/_next') || path.startsWith('/favicon') || path.startsWith('/icons') || path.startsWith('/api/auth')
+  let user: any = null
+  if (token) {
+    try { user = await verifyJwt(token) } catch { user = null }
+  }
+  if (user && isLogin) {
+    const roleHome: string = user.role === 'ADMIN' ? '/admin' : user.role === 'THERAPIST' ? '/therapist' : user.role === 'PARENT' ? '/parent' : '/'
+    return NextResponse.redirect(new URL(roleHome, req.url))
+  }
+  if (!user && !isLogin && !isPublicAsset) {
+    // Allow unauth access to API login endpoints; everything else goes to /login
+    if (!path.startsWith('/api')) {
+      const loginUrl = new URL('/login', req.url)
+      const returnTo = path + (url.search || '')
+      loginUrl.searchParams.set('returnTo', returnTo)
+      return NextResponse.redirect(loginUrl)
+    }
+  }
   const protectedPrefixes = ['/therapist', '/parent', '/chat', '/board', '/notifications', '/settings', '/admin']
   const isProtected = protectedPrefixes.some(p => path.startsWith(p))
   const makeLoginRedirect = () => {
@@ -27,15 +49,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
   if (isProtected) {
-    if (!token) return makeLoginRedirect()
-    try {
-  const user = token ? await verifyJwt(token) : null
-  if (path.startsWith('/therapist') && user?.role !== 'THERAPIST') return makeLoginRedirect()
-  if (path.startsWith('/parent') && user?.role !== 'PARENT') return makeLoginRedirect()
-  if (path.startsWith('/admin') && user?.role !== 'ADMIN') return makeLoginRedirect()
-    } catch {
-      return makeLoginRedirect()
-    }
+    if (!user) return makeLoginRedirect()
+    if (path.startsWith('/therapist') && user.role !== 'THERAPIST') return makeLoginRedirect()
+    if (path.startsWith('/parent') && user.role !== 'PARENT') return makeLoginRedirect()
+    if (path.startsWith('/admin') && user.role !== 'ADMIN') return makeLoginRedirect()
   }
 
   const res = NextResponse.next()
@@ -43,9 +60,22 @@ export async function middleware(req: NextRequest) {
   res.headers.set('X-Content-Type-Options', 'nosniff')
   res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   res.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  // Report-only CSP to observe violations before enforcement
+  res.headers.set('Content-Security-Policy-Report-Only', [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https:",
+    "media-src 'self' https: data:",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "base-uri 'self'"
+  ].join('; '))
   return res
 }
 
 export const config = {
-  matcher: ['/api/:path*', '/therapist/:path*', '/parent/:path*', '/chat', '/board', '/notifications', '/settings', '/admin/:path*']
+  matcher: ['/', '/api/:path*', '/therapist/:path*', '/parent/:path*', '/chat', '/board', '/notifications', '/settings', '/admin/:path*']
 }

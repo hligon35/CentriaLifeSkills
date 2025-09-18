@@ -3,9 +3,22 @@ import { useEffect, useState } from 'react'
 
 type Memo = { id: string; title: string; body: string }
 
-export default function GreetingOverlay() {
-  const [open, setOpen] = useState(true)
+interface Props { userId?: string }
+
+export default function GreetingOverlay({ userId }: Props) {
+  const [open, setOpen] = useState(false)
   const [memos, setMemos] = useState<Memo[]>([])
+  const storageKey = userId ? `urgentMemoSeen:${userId}` : 'urgentMemoSeen:anon'
+
+  function evaluateOpen(fetched: Memo[]) {
+    if (!fetched || fetched.length === 0) { setOpen(false); return }
+    try {
+      const raw = localStorage.getItem(storageKey)
+      const seen: string[] = raw ? JSON.parse(raw) : []
+      const unseen = fetched.some(m => !seen.includes(m.id))
+      setOpen(unseen)
+    } catch { setOpen(true) }
+  }
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -19,9 +32,14 @@ export default function GreetingOverlay() {
         // Some environments can return empty body; guard JSON parse
         const text = await r.text()
         const d = text ? JSON.parse(text) : { memos: [] }
-        if (!cancelled) setMemos(Array.isArray(d?.memos) ? d.memos : [])
+        if (!cancelled) {
+          const arr = Array.isArray(d?.memos) ? d.memos : []
+          setMemos(arr)
+          // Decide whether to open after we have the memos
+          setTimeout(()=>evaluateOpen(arr), 0)
+        }
       } catch {
-        if (!cancelled) setMemos([])
+        if (!cancelled) { setMemos([]); setOpen(false) }
       }
     })()
     return () => { cancelled = true }
@@ -50,6 +68,13 @@ export default function GreetingOverlay() {
               try {
                 const ids = memos.map(m => m.id)
                 if (ids.length) await fetch('/api/urgent-memos/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ memoIds: ids }) })
+                // Persist as seen for this login session (until new memo id appears)
+                try {
+                  const raw = localStorage.getItem(storageKey)
+                  const seen: string[] = raw ? JSON.parse(raw) : []
+                  const merged = Array.from(new Set([...seen, ...ids]))
+                  localStorage.setItem(storageKey, JSON.stringify(merged))
+                } catch {}
               } catch {}
               setOpen(false)
             }}

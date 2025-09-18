@@ -7,15 +7,14 @@ export default async function ParentSectionLayout({ children }: { children: Reac
   const me = await getSession()
   if (!me || me.role !== 'PARENT') redirect('/login')
   const tabs = [
-    { href: '/', label: 'Home', activePaths: ['/', '/board'] },
-    { href: '/chat', label: 'Messages' },
-    { href: '/calendar', label: 'Calendar' },
-    { href: '/parent/therapists', label: 'Therapists' },
-    { href: '/parent', label: 'Dashboard' },
-    { href: '/parent/children', label: 'My Children' },
+  { href: '/parent', label: 'Home' },
+  { href: '/parent/messages', label: 'Messages' },
+  { href: '/parent/my-kid', label: 'My Kid' },
+  { href: '/parent/settings', label: 'Settings' },
+  { href: '/parent/logout', label: 'Logout' },
   ]
   return (
-    <section className="mx-auto max-w-5xl p-4 md:pt-14">
+    <section className="mx-auto max-w-5xl p-4">
       <PathNavTabs items={tabs} />
       {children}
     </section>

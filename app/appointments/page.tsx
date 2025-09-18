@@ -1,10 +1,13 @@
 "use client"
 import { useEffect, useMemo, useState } from 'react'
+import { DateStamp } from '@/components/DateStamp'
+import { useSessionContext } from '@/lib/useSessionContext'
 
 type Appt = { id: string; therapistId: string; parentId: string; studentId: string; startAt: string; endAt: string; status: string; student?: { id: string; name: string }; therapist?: { id: string; name: string; email: string }; parent?: { id: string; name: string; email: string } }
 
 export default function AppointmentsPage() {
-  const [role, setRole] = useState<string>('')
+  const { user } = useSessionContext()
+  const role = user?.role || ''
   const [items, setItems] = useState<Appt[]>([])
   const [loading, setLoading] = useState(true)
   const [students, setStudents] = useState<Array<{ id: string; name: string }>>([])
@@ -13,10 +16,6 @@ export default function AppointmentsPage() {
   const [start, setStart] = useState<string>('10:00')
   const [end, setEnd] = useState<string>('10:30')
   const [err, setErr] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetch('/api/auth/me').then(r => r.json()).then(j => setRole(j?.user?.role || '')).catch(() => setRole(''))
-  }, [])
 
   useEffect(() => {
     if (!role) return
@@ -58,8 +57,7 @@ export default function AppointmentsPage() {
               const [eh, em] = end.split(':').map(Number)
               const startAt = new Date(d.getFullYear(), d.getMonth(), d.getDate(), sh, sm)
               const endAt = new Date(d.getFullYear(), d.getMonth(), d.getDate(), eh, em)
-              const me = await fetch('/api/auth/me').then(r=>r.json())
-              const parentId = me?.user?.sub
+              const parentId = user?.sub
               const resp = await fetch('/api/appointments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ parentId, studentId, startAt: startAt.toISOString(), endAt: endAt.toISOString() }) })
               if (!resp.ok) throw new Error('request failed')
               const created = await resp.json()
@@ -99,7 +97,7 @@ export default function AppointmentsPage() {
               {groups.upcoming.map(a => (
                 <li key={a.id} className="rounded border bg-white p-3 flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="text-sm font-medium truncate">{new Date(a.startAt).toLocaleString()} – {new Date(a.endAt).toLocaleTimeString()}</div>
+                    <div className="text-sm font-medium truncate"><DateStamp date={a.startAt} /> – <DateStamp date={a.endAt} mode='time' /></div>
                     <div className="text-xs text-gray-600 truncate">Student: {a.student?.name || a.studentId} • BCBA: {a.therapist?.name || a.therapistId}</div>
                     <div className="text-xs text-gray-600">Status: {a.status}</div>
                   </div>
@@ -121,7 +119,7 @@ export default function AppointmentsPage() {
             <ul className="space-y-2">
               {groups.past.map(a => (
                 <li key={a.id} className="rounded border bg-white p-3">
-                  <div className="text-sm">{new Date(a.startAt).toLocaleString()} – {new Date(a.endAt).toLocaleTimeString()}</div>
+                  <div className="text-sm"><DateStamp date={a.startAt} /> – <DateStamp date={a.endAt} mode='time' /></div>
                   <div className="text-xs text-gray-600">Status: {a.status}</div>
                 </li>
               ))}

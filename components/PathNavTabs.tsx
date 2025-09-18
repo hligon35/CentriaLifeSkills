@@ -14,8 +14,24 @@ export default function PathNavTabs({ items, className }: { items: TabItem[]; cl
     <div className={`mb-3 sticky top-0 z-30 bg-gray-50 ${className || ''}`}>
       <div role="tablist" aria-label="Section navigation" className="flex flex-wrap justify-center gap-2 border-b">
         {items.map((item) => {
-          const activeByExtra = (item.activePaths || []).some(p => pathname === p || pathname.startsWith(p.endsWith('/') ? p : p + '/'))
-          const isActive = activeByExtra || pathname === item.href || pathname.startsWith(item.href.endsWith('/') ? item.href : item.href + '/')
+          // Active logic:
+          // 1. If explicit activePaths provided, use them (exact or descendant match)
+          // 2. Else treat tab as active only on exact path (avoid Home staying active everywhere)
+          const normalized = (p:string) => p.endsWith('/') ? p.slice(0,-1) : p
+          const current = normalized(pathname)
+          const itemHref = normalized(item.href)
+          const activeByExtra = (item.activePaths || []).some(p => {
+            const base = normalized(p)
+            return current === base || current.startsWith(base + '/')
+          })
+          let isActive: boolean
+            
+          if (item.activePaths && item.activePaths.length > 0) {
+            isActive = activeByExtra || current === itemHref || current.startsWith(itemHref + '/')
+          } else {
+            // Exact only when no activePaths provided
+            isActive = current === itemHref
+          }
           return (
             <Link
               key={item.href}

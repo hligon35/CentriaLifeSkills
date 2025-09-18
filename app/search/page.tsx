@@ -1,5 +1,6 @@
 "use client"
 import { useCallback, useEffect, useState } from 'react'
+import { DateStamp } from '@/components/DateStamp'
 import Link from 'next/link'
 
 type SearchResults = {
@@ -63,7 +64,7 @@ export default function SearchPage() {
           <ul className="text-sm space-y-1">
             {results.events.map(e => (
               <li key={e.id} className="border rounded p-2 bg-white">
-                {e.title} <span className="text-xs text-gray-500">· {new Date(e.startAt).toLocaleDateString()}</span>
+                {e.title} <span className="text-xs text-gray-500">· <DateStamp date={e.startAt} mode='date' /></span>
               </li>
             ))}
             {results.events.length === 0 && <li className="text-xs text-gray-600">No matches.</li>}

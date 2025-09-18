@@ -1,7 +1,8 @@
 "use client"
 import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
-import { formatDistanceToNow } from 'date-fns'
+import { TimeAgo } from '@/components/TimeAgo'
+import { useSessionContext } from '@/lib/useSessionContext'
 
 type Post = {
   id: string
@@ -14,9 +15,10 @@ type Post = {
   fileUrl?: string
 }
 
-export default function Home(_props: any) {
+export default function Home() {
   const [posts, setPosts] = useState<Post[]>([])
-  const [role, setRole] = useState<string | null>(null)
+  const { user, settings } = useSessionContext()
+  const role = user?.role || null
   const [allowLikes, setAllowLikes] = useState(true)
   const [allowComments, setAllowComments] = useState(true)
   const [richPreviewEnabled, setRichPreviewEnabled] = useState(true)
@@ -26,7 +28,7 @@ export default function Home(_props: any) {
   const [liking, setLiking] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
-  const [category, setCategory] = useState('')
+  // category removed
   const [creating, setCreating] = useState(false)
   const [loading, setLoading] = useState(true)
   const [imageUrl, setImageUrl] = useState('')
@@ -48,21 +50,15 @@ export default function Home(_props: any) {
     }
   }
 
+  useEffect(() => { refresh() }, [])
+
   useEffect(() => {
-    refresh()
-    fetch('/api/auth/me').then(r=>r.json()).then(j=>setRole(j?.user?.role||null)).catch(()=>setRole(null))
-    // Load public board settings
-    fetch('/api/settings')
-      .then(r=>r.ok ? r.json() : null)
-      .then(s => {
-        if (!s) return
-        setAllowLikes(Boolean(s['board.allowLikes']))
-        setAllowComments(Boolean(s['board.allowComments']))
-        setRichPreviewEnabled(Boolean(s['board.richPreview.enabled']))
-        setCategories(Array.isArray(s['board.categories']) ? s['board.categories'] : [])
-      })
-      .catch(()=>{})
-  }, [])
+    if (!settings) return
+    setAllowLikes(Boolean(settings['board.allowLikes']))
+    setAllowComments(Boolean(settings['board.allowComments']))
+    setRichPreviewEnabled(Boolean(settings['board.richPreview.enabled']))
+    setCategories(Array.isArray(settings['board.categories']) ? settings['board.categories'] : [])
+  }, [settings])
 
   async function refresh() {
   setLoading(true)
@@ -115,7 +111,7 @@ export default function Home(_props: any) {
           title: title.trim(),
           body: body.trim(),
           imageUrl: imageUrl.trim() || undefined,
-          category: categories.includes(category) ? category : undefined,
+          // category removed
         })
       })
       if (res.ok) {
@@ -124,7 +120,7 @@ export default function Home(_props: any) {
         setPosts(prev => [{ ...p, comments: [], likes: [] }, ...prev])
         setTitle('')
         setBody('')
-        setCategory('')
+  // category cleared (removed)
         setImageUrl('')
         if (p && p.published === false) {
           setFlash('Your post was submitted for approval and will appear once approved.')
@@ -136,19 +132,24 @@ export default function Home(_props: any) {
     }
   }
 
-  return (
-    <main className="mx-auto max-w-3xl p-4">
-      {role === 'ADMIN' && <AdminTherapistStatus />}
-      <div className="mb-4 flex flex-col items-center sm:flex-row sm:items-center sm:justify-between gap-2">
+  const HeaderSection = (
+    <div className="mb-4 flex flex-col items-center sm:flex-row sm:items-center sm:justify-between gap-2">
         <div className="text-center sm:text-left">
           {/* Insert logo and school name here */}
           <div className="text-2xl font-semibold">BuddyBoard</div>
           <p className="text-xs text-gray-500">Care Starts with Communication.</p>
         </div>
         <input aria-label="Search posts" value={searchInput} onChange={e => setSearchInput(e.target.value)} className="rounded border px-3 py-2 w-full sm:w-64" placeholder="Search posts" />
-      </div>
+    </div>
+  )
 
-      {/* Create a new post */}
+  return (
+    <main className="mx-auto max-w-3xl p-4">
+      {/* Admin therapist status appears above header */}
+      {role === 'ADMIN' && <AdminTherapistStatus />}
+      {HeaderSection}
+
+  {/* Create a new post */}
       {flash && (
         <div className="mb-3 rounded border border-amber-200 bg-amber-50 p-3 text-amber-900 text-sm">{flash}</div>
       )}
@@ -159,19 +160,7 @@ export default function Home(_props: any) {
           value={title}
           onChange={e => setTitle(e.target.value)}
         />
-        {categories.length > 0 && (
-          <div className="mb-2">
-            <select
-              aria-label="Post category"
-              value={category}
-              onChange={e=>setCategory(e.target.value)}
-              className="w-full rounded border px-3 py-2 text-sm"
-            >
-              <option value="">Select category (optional)</option>
-              {categories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-        )}
+        {/* category select removed */}
         <textarea
           className="mb-2 w-full rounded border px-3 py-2"
           placeholder="Share updates (avoid PHI in examples)"
@@ -229,7 +218,7 @@ export default function Home(_props: any) {
           <article key={p.id} id={`post-${p.id}`} className="rounded border bg-white p-4">
             <div className="flex items-center justify-between">
               <h2 className="font-medium text-lg">{p.title}</h2>
-              <span className="text-xs text-gray-500">{formatDistanceToNow(new Date(p.createdAt), { addSuffix: true })}</span>
+              <span className="text-xs text-gray-500"><TimeAgo date={p.createdAt} /></span>
             </div>
             <div className="mt-1 whitespace-pre-wrap text-sm text-gray-800">{p.body}</div>
             {/* Rich link preview for the first URL in body */}

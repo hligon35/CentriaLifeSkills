@@ -1,16 +1,8 @@
 "use client"
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import profilePng from '@/icons/profile.png'
-
-function safeAvatar(url?: string | null) {
-  if (!url) return profilePng as any
-  try {
-    const u = new URL(url)
-    if (u.hostname.includes('api.dicebear.com')) return profilePng as any
-  } catch {}
-  return url
-}
+import { safeAvatar } from '@/lib/media'
+import { DateStamp } from '@/components/DateStamp'
 
 type Staff = { id: string; name: string | null; email?: string; role: string; photoUrl?: string | null }
 type Student = {
@@ -341,7 +333,7 @@ function AuditList() {
     <ul className="text-xs space-y-1 max-h-48 overflow-auto border rounded p-2 bg-white">
       {logs.map(l => (
         <li key={l.id} className="flex justify-between gap-2">
-          <span>{new Date(l.createdAt).toLocaleString()}</span>
+          <span><DateStamp date={l.createdAt} /></span>
           <span className="flex-1 text-right">{l.action} · {l.entity}{l.entityId ? `(${l.entityId})` : ''}</span>
         </li>
       ))}

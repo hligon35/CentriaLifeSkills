@@ -15,12 +15,17 @@ export default function LoginPage() {
       setError(j.error || 'Login failed')
       return
     }
+    const rt = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('returnTo') || '') : ''
     const meResp = await fetch('/api/auth/me')
     const me = await meResp.json().catch(() => null)
     const role = me?.user?.role as 'THERAPIST' | 'PARENT' | 'ADMIN' | undefined
-    if (role === 'THERAPIST') window.location.href = '/therapist'
+    if (rt) {
+      window.location.href = rt
+      return
+    }
+    if (role === 'ADMIN') window.location.href = '/admin'
+    else if (role === 'THERAPIST') window.location.href = '/therapist'
     else if (role === 'PARENT') window.location.href = '/parent'
-    else if (role === 'ADMIN') window.location.href = '/admin/messages'
     else window.location.href = '/'
   }
 
@@ -103,7 +108,7 @@ export default function LoginPage() {
         <div className="flex gap-2">
           <button onClick={() => handleDevSSO('THERAPIST')} className="flex-1 rounded-lg border px-3 py-2">Dev SSO Therapist</button>
           <button onClick={() => handleDevSSO('PARENT')} className="flex-1 rounded-lg border px-3 py-2">Dev SSO Parent</button>
-          <button onClick={() => fetch('/api/auth/sso/dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role: 'ADMIN' }) }).then(res => { if (res.ok) { const rt = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('returnTo') || '/admin/messages') : '/admin/messages'; window.location.href = rt } })} className="hidden sm:block flex-1 rounded-lg border px-3 py-2">Dev SSO Admin</button>
+          <button onClick={() => fetch('/api/auth/sso/dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role: 'ADMIN' }) }).then(res => { if (res.ok) { const rt = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('returnTo') || '/admin') : '/admin'; window.location.href = rt } })} className="hidden sm:block flex-1 rounded-lg border px-3 py-2">Dev SSO Admin</button>
         </div>
       </div>
       <p className="mt-3 text-xs text-gray-500">Test users: therapist@example.com / parent@example.com / admin@example.com with Password123!</p>

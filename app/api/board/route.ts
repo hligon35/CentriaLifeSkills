@@ -8,12 +8,11 @@ import { prisma as db } from '@/lib/prisma'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const category = searchParams.get('category') || undefined
-  const tag = searchParams.get('tag') || undefined
+  const category = undefined
+  const tag = undefined
   const now = new Date()
   const where: any = {
-    ...(category ? { category } : {}),
-    ...(tag ? { OR: [ { tags: { contains: tag } } ] } : {}),
+  // category & tag filtering removed
     OR: [
       { published: true },
       { publishAt: { lte: now } },
@@ -75,8 +74,7 @@ export async function POST(req: NextRequest) {
     imageUrl,
     fileUrl,
     pinned: Boolean(parsed.data.pinned ?? false),
-    category: parsed.data.category ?? null,
-    tags: parsed.data.tags && parsed.data.tags.length ? parsed.data.tags.join(',') : null,
+  // category & tags removed from schema/UI
     published,
     publishAt,
   } as any })

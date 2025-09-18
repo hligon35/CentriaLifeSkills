@@ -25,8 +25,6 @@ export const PostCreateSchema = z.object({
   body: z.string().max(20000),
   imageUrl: z.string().url().optional(),
   pinned: z.boolean().optional(),
-  category: z.string().max(50).optional(),
-  tags: z.array(z.string().min(1).max(30)).optional(),
 })
 
 export const CommentCreateSchema = z.object({

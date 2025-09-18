@@ -1,16 +1,7 @@
 "use client"
 import { useEffect, useState, useMemo, useRef } from 'react'
 import Image from 'next/image'
-import profilePng from '@/icons/profile.png'
-
-function safeAvatar(url?: string | null) {
-  if (!url) return profilePng as any
-  try {
-    const u = new URL(url)
-    if (u.hostname.includes('api.dicebear.com')) return profilePng as any
-  } catch {}
-  return url
-}
+import { safeAvatar } from '@/lib/media'
 
 type Student = { id: string; name: string; parent?: Participant; amTherapist?: Participant; pmTherapist?: Participant }
 type Message = { id: string; senderId: string; receiverId: string; content: string; createdAt: string }

@@ -1,5 +1,6 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
+import { DateStamp } from '@/components/DateStamp'
 
 type WeekData = { weekStart: string; totalMs: number; days: Record<string, number> }
 
@@ -41,7 +42,7 @@ export default function ClientTimesheets() {
     <>
       <div className="mb-3 flex items-center gap-2">
         <button className="rounded border px-2 py-1 text-sm" onClick={()=>shiftWeek(-7)}>Prev</button>
-        <div className="text-sm text-gray-700">Week of {new Date(weekStart).toLocaleDateString()}</div>
+  <div className="text-sm text-gray-700">Week of <DateStamp date={weekStart} mode='date' /></div>
         <button className="rounded border px-2 py-1 text-sm" onClick={()=>shiftWeek(7)}>Next</button>
       </div>
       {loading ? <div className="text-gray-500">Loading…</div> : (

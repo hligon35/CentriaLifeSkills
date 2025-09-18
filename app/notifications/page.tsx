@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { DateStamp } from '@/components/DateStamp'
 
 type Item = { id: string; type: string; channel: string; status: string; createdAt: string }
 
@@ -13,7 +14,7 @@ export default function NotificationsPage() {
         {items.map(i => (
           <li key={i.id} className="rounded border bg-white p-3 text-sm flex justify-between">
             <div>{i.type} • {i.channel}</div>
-            <div className="text-gray-500">{i.status} • {new Date(i.createdAt).toLocaleString()}</div>
+            <div className="text-gray-500">{i.status} • <DateStamp date={i.createdAt} /></div>
           </li>
         ))}
       </ul>

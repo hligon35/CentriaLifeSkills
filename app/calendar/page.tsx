@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useMemo, useState } from 'react'
+import { fmtDateTime } from '@/lib/time'
 
 type CalEvent = { id: string; title: string; description?: string | null; audience: string; startAt: string; endAt?: string | null; location?: string | null; rsvpStatus?: 'YES' | 'NO' | 'MAYBE' | null }
 
@@ -37,7 +38,7 @@ export default function CalendarPage() {
         <h1 className="text-xl font-semibold">Calendar</h1>
         <div className="flex items-center gap-2">
           <button className="rounded border px-2 py-1" onClick={() => shiftMonths(-1)}>&larr; Prev</button>
-          <div className="text-sm w-32 text-center">{first.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</div>
+          <div className="text-sm w-32 text-center">{fmtDateTime(first, { month: 'long', year: 'numeric' })}</div>
           <button className="rounded border px-2 py-1" onClick={() => shiftMonths(1)}>Next &rarr;</button>
         </div>
       </div>

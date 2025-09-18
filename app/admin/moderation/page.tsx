@@ -1,5 +1,6 @@
 "use client"
 import { useCallback, useEffect, useState } from 'react'
+import { DateStamp } from '@/components/DateStamp'
 import Image from 'next/image'
 
 type PendingPost = {
@@ -81,7 +82,7 @@ export default function AdminModerationPage() {
           <li key={p.id} className="rounded border bg-white p-3">
             <div className="flex items-center justify-between">
               <div className="font-medium">{p.title}</div>
-              <div className="text-xs text-gray-500">{new Date(p.createdAt).toLocaleString()}</div>
+              <div className="text-xs text-gray-500"><DateStamp date={p.createdAt} /></div>
             </div>
             <div className="text-xs text-gray-600">By: {p.author?.name || p.author?.email || 'Unknown'}{p.category ? ` • ${p.category}` : ''}</div>
             <div className="mt-2 text-sm whitespace-pre-wrap">{p.body}</div>
