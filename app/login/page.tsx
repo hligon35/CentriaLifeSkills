@@ -112,6 +112,7 @@ export default function LoginPage() {
         </div>
       </div>
       <p className="mt-3 text-xs text-gray-500">Test users: therapist@example.com / parent@example.com / admin@example.com with Password123!</p>
+      <p className="mt-1 text-xs text-gray-500">Need an account? <a href="/register" className="underline">Register</a></p>
     </main>
   )
 }

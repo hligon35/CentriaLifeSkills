@@ -22,12 +22,13 @@ export async function middleware(req: NextRequest) {
   // 1. Unauthenticated: any protected or root/page access (except /login and public assets) -> /login with returnTo
   // 2. Authenticated: /login should bounce to role home
   const isLogin = path === '/login'
-  const isPublicAsset = path.startsWith('/_next') || path.startsWith('/favicon') || path.startsWith('/icons') || path.startsWith('/api/auth')
+  const isRegister = path === '/register'
+  const isPublicAsset = path.startsWith('/_next') || path.startsWith('/favicon') || path.startsWith('/icons') || path.startsWith('/api/auth') || isRegister
   let user: any = null
   if (token) {
     try { user = await verifyJwt(token) } catch { user = null }
   }
-  if (user && isLogin) {
+  if (user && (isLogin || isRegister)) {
     const roleHome: string = user.role === 'ADMIN' ? '/admin' : user.role === 'THERAPIST' ? '/therapist' : user.role === 'PARENT' ? '/parent' : '/'
     return NextResponse.redirect(new URL(roleHome, req.url))
   }

@@ -42,6 +42,9 @@ model User {
   availability            TherapistAvailability[]
   urgentMemoReceipts      UrgentMemoReceipt[]
   workShifts              WorkShift[]
+  // Inverse relations for invites (creator & consumer)
+  invitesCreated          Invite[]               @relation("inviteCreator")
+  invitesConsumed         Invite[]               @relation("inviteConsumer")
 }
 
 model Message {
@@ -331,4 +334,21 @@ model ClockEntry {
   therapist   User      @relation(fields: [therapistId], references: [id])
 
   @@index([therapistId, startedAt])
+}
+
+// Invitation system for controlled user onboarding
+model Invite {
+  id            String   @id @default(cuid())
+  email         String
+  role          String
+  token         String   @unique
+  createdById   String
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime?
+  consumedAt    DateTime?
+  consumedById  String?
+  createdBy     User     @relation("inviteCreator", fields: [createdById], references: [id])
+  consumedBy    User?    @relation("inviteConsumer", fields: [consumedById], references: [id])
+
+  @@index([email, consumedAt])
 }
