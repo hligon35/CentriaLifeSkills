@@ -1,9 +1,11 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function LoginPage() {
   // Show dev shortcuts only in non-production builds, unless explicitly enabled via NEXT_PUBLIC_SHOW_DEV_SSO=1
   const showDev = process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_SHOW_DEV_SSO === '1'
+  const showTestCreds = process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_SHOW_TEST_CREDS === '1'
+  const [ssoConfigured, setSsoConfigured] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -46,6 +48,18 @@ export default function LoginPage() {
       setError('SSO failed to start')
     }
   }
+
+  // Probe SSO availability at runtime; in production, hide the button unless SSO is configured.
+  useEffect(() => {
+    let alive = true
+    fetch('/api/auth/sso/login?check=1')
+      .then(r => r.ok ? r.json() : null)
+      .then(j => { if (alive) setSsoConfigured(Boolean(j?.configured)) })
+      .catch(() => { if (alive) setSsoConfigured(false) })
+    return () => { alive = false }
+  }, [])
+
+  const showSSO = (process.env.NODE_ENV !== 'production') ? true : ssoConfigured
 
   async function handleDevSSO(role: 'THERAPIST' | 'PARENT') {
     try {
@@ -104,8 +118,10 @@ export default function LoginPage() {
           </button>
         </div>
   <button onClick={handlePasswordLogin} className="w-full rounded-lg bg-brand-600 text-white px-4 py-2">Sign in</button>
-        <div className="text-center text-xs text-gray-500">or</div>
-  <button onClick={handleSSO} className="w-full rounded-lg border px-4 py-2">Continue with SSO</button>
+    {showSSO && <div className="text-center text-xs text-gray-500">or</div>}
+    {showSSO && (
+      <button onClick={handleSSO} className="w-full rounded-lg border px-4 py-2">Continue with SSO</button>
+    )}
         {showDev && (
           <>
             <div className="text-xs text-gray-500">Dev shortcuts</div>
@@ -117,7 +133,9 @@ export default function LoginPage() {
           </>
         )}
       </div>
-      <p className="mt-3 text-xs text-gray-500">Test users: therapist@example.com / parent@example.com / admin@example.com with Password123!</p>
+      {showTestCreds && (
+        <p className="mt-3 text-xs text-gray-500">Test users: therapist@example.com / parent@example.com / admin@example.com with Password123!</p>
+      )}
       <p className="mt-1 text-xs text-gray-500">Need an account? <a href="/register" className="underline">Register</a></p>
     </main>
   )

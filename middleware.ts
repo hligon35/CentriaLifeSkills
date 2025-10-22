@@ -28,6 +28,16 @@ export async function middleware(req: NextRequest) {
   if (token) {
     try { user = await verifyJwt(token) } catch { user = null }
   }
+  // If user hits root '/', direct them to the appropriate place
+  if (path === '/') {
+    if (user) {
+      const roleHome: string = user.role === 'ADMIN' ? '/admin' : user.role === 'THERAPIST' ? '/therapist' : user.role === 'PARENT' ? '/parent' : '/login'
+      if (roleHome !== '/') return NextResponse.redirect(new URL(roleHome, req.url))
+    } else {
+      const loginUrl = new URL('/login', req.url)
+      return NextResponse.redirect(loginUrl)
+    }
+  }
   if (user && (isLogin || isRegister)) {
     const roleHome: string = user.role === 'ADMIN' ? '/admin' : user.role === 'THERAPIST' ? '/therapist' : user.role === 'PARENT' ? '/parent' : '/'
     return NextResponse.redirect(new URL(roleHome, req.url))
