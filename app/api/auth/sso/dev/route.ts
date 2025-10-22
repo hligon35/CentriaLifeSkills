@@ -17,7 +17,11 @@ export async function POST(req: NextRequest) {
   if (user) { sub = user.id; name = user.name || name }
   const token = await signJwt({ sub, role: role as any, name })
   const isProd = String(process.env.NODE_ENV) === 'production'
-  cookies().set('token', token, { httpOnly: true, secure: isProd, sameSite: 'strict', path: '/' })
+  const host = req.nextUrl.hostname
+  const isLocalHost = host === 'localhost' || host === '127.0.0.1'
+  const allowInsecureLocal = process.env.ALLOW_INSECURE_LOCAL === '1'
+  const secureCookie = isProd && !isLocalHost && !allowInsecureLocal
+  cookies().set('token', token, { httpOnly: true, secure: secureCookie, sameSite: 'strict', path: '/' })
   const res = NextResponse.json({ ok: true })
   if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DEV_SSO) {
     res.headers.set('Warning', '199 - Dev SSO override active; remove ALLOW_DEV_SSO to disable')

@@ -15,8 +15,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     { href: '/admin/settings', label: 'Settings' },
   ]
   return (
-    <section className="mx-auto max-w-6xl p-4">
-      <PathNavTabs items={tabs} />
+    <section className="mx-auto max-w-6xl p-4 md:pt-0">
+      {/* Offset sticky tabs below fixed desktop header (h-14) and remove top padding on md+ so it touches header */}
+      <PathNavTabs items={tabs} className="md:top-14" />
       {children}
     </section>
   )

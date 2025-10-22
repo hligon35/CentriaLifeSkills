@@ -2,6 +2,8 @@
 import { useState } from 'react'
 
 export default function LoginPage() {
+  // Show dev shortcuts only in non-production builds, unless explicitly enabled via NEXT_PUBLIC_SHOW_DEV_SSO=1
+  const showDev = process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_SHOW_DEV_SSO === '1'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -66,7 +68,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto max-w-sm p-6">
+    <main className="mx-auto max-w-sm p-6 md:pt-14">
       <h1 className="text-xl font-semibold mb-4">Sign in</h1>
   <div className="rounded-lg border bg-white p-4 space-y-2">
   {error && <div className="rounded bg-red-50 border border-red-200 text-red-800 px-3 py-2 text-sm">{error}</div>}
@@ -104,12 +106,16 @@ export default function LoginPage() {
   <button onClick={handlePasswordLogin} className="w-full rounded-lg bg-brand-600 text-white px-4 py-2">Sign in</button>
         <div className="text-center text-xs text-gray-500">or</div>
   <button onClick={handleSSO} className="w-full rounded-lg border px-4 py-2">Continue with SSO</button>
-        <div className="text-xs text-gray-500">Dev shortcuts</div>
-        <div className="flex gap-2">
-          <button onClick={() => handleDevSSO('THERAPIST')} className="flex-1 rounded-lg border px-3 py-2">Dev SSO Therapist</button>
-          <button onClick={() => handleDevSSO('PARENT')} className="flex-1 rounded-lg border px-3 py-2">Dev SSO Parent</button>
-          <button onClick={() => fetch('/api/auth/sso/dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role: 'ADMIN' }) }).then(res => { if (res.ok) { const rt = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('returnTo') || '/admin') : '/admin'; window.location.href = rt } })} className="hidden sm:block flex-1 rounded-lg border px-3 py-2">Dev SSO Admin</button>
-        </div>
+        {showDev && (
+          <>
+            <div className="text-xs text-gray-500">Dev shortcuts</div>
+            <div className="flex gap-2">
+              <button onClick={() => handleDevSSO('THERAPIST')} className="flex-1 rounded-lg border px-3 py-2">Dev SSO Therapist</button>
+              <button onClick={() => handleDevSSO('PARENT')} className="flex-1 rounded-lg border px-3 py-2">Dev SSO Parent</button>
+              <button onClick={() => fetch('/api/auth/sso/dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role: 'ADMIN' }) }).then(res => { if (res.ok) { const rt = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('returnTo') || '/admin') : '/admin'; window.location.href = rt } })} className="hidden sm:block flex-1 rounded-lg border px-3 py-2">Dev SSO Admin</button>
+            </div>
+          </>
+        )}
       </div>
       <p className="mt-3 text-xs text-gray-500">Test users: therapist@example.com / parent@example.com / admin@example.com with Password123!</p>
       <p className="mt-1 text-xs text-gray-500">Need an account? <a href="/register" className="underline">Register</a></p>

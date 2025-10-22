@@ -27,9 +27,13 @@ export async function GET(req: NextRequest) {
       create: { email, name, role: 'PARENT', passwordHash: '' }
     })
 
-    const token = await signJwt({ sub: user.id, role: user.role as any, name: user.name || undefined })
-    const isProd = process.env.NODE_ENV === 'production'
-    cookies().set('token', token, { httpOnly: true, secure: isProd, sameSite: 'strict', path: '/' })
+  const token = await signJwt({ sub: user.id, role: user.role as any, name: user.name || undefined })
+  const isProd = process.env.NODE_ENV === 'production'
+  const host = req.nextUrl.hostname
+  const isLocalHost = host === 'localhost' || host === '127.0.0.1'
+  const allowInsecureLocal = process.env.ALLOW_INSECURE_LOCAL === '1'
+  const secureCookie = isProd && !isLocalHost && !allowInsecureLocal
+  cookies().set('token', token, { httpOnly: true, secure: secureCookie, sameSite: 'strict', path: '/' })
     const dest = new URL(returnTo || '/', req.url)
     return NextResponse.redirect(dest)
   } catch (e) {

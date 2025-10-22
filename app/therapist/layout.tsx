@@ -11,11 +11,11 @@ export default async function TherapistSectionLayout({ children }: { children: R
     { href: '/therapist/messages', label: 'Messages' },
     { href: '/therapist/schedule', label: 'Schedule' },
     { href: '/therapist/settings', label: 'Settings' },
-    { href: '/therapist/logout', label: 'Logout' },
   ]
   return (
-    <section className="mx-auto max-w-5xl p-4">
-      <PathNavTabs items={tabs} />
+    <section className="mx-auto max-w-5xl p-4 md:pt-0">
+      {/* Offset below fixed desktop header and remove top padding on md+ */}
+      <PathNavTabs items={tabs} className="md:top-14" />
       {children}
     </section>
   )

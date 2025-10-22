@@ -11,11 +11,11 @@ export default async function ParentSectionLayout({ children }: { children: Reac
   { href: '/parent/messages', label: 'Messages' },
   { href: '/parent/my-kid', label: 'My Kid' },
   { href: '/parent/settings', label: 'Settings' },
-  { href: '/parent/logout', label: 'Logout' },
   ]
   return (
-    <section className="mx-auto max-w-5xl p-4">
-      <PathNavTabs items={tabs} />
+    <section className="mx-auto max-w-5xl p-4 md:pt-0">
+      {/* Offset below fixed desktop header and remove top padding on md+ */}
+      <PathNavTabs items={tabs} className="md:top-14" />
       {children}
     </section>
   )

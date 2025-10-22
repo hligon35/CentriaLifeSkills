@@ -144,7 +144,7 @@ export default function Home() {
   )
 
   return (
-    <main className="mx-auto max-w-3xl p-4">
+    <main className="mx-auto max-w-3xl p-4 md:pt-14">
       {/* Admin therapist status appears above header */}
       {role === 'ADMIN' && <AdminTherapistStatus />}
       {HeaderSection}

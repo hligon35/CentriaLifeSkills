@@ -11,7 +11,7 @@ type TabItem = {
 export default function PathNavTabs({ items, className }: { items: TabItem[]; className?: string }) {
   const pathname = usePathname() || '/'
   return (
-    <div className={`mb-3 sticky top-0 z-30 bg-gray-50 ${className || ''}`}>
+    <div className={`mb-12 md:mb-14 sticky top-0 z-30 bg-gray-50 ${className || ''}`}>
       <div role="tablist" aria-label="Section navigation" className="flex flex-wrap justify-center gap-2 border-b">
         {items.map((item) => {
           // Active logic:

@@ -40,7 +40,7 @@ export default function RegisterPage() {
   const inviteMode = !!token
 
   return (
-    <main className="mx-auto max-w-sm p-6">
+    <main className="mx-auto max-w-sm p-6 md:pt-14">
       <h1 className="text-xl font-semibold mb-4">Create your account</h1>
       <div className="rounded border bg-white p-4 space-y-3">
         {error && <div className="rounded bg-red-50 border border-red-200 text-red-700 px-3 py-2 text-sm">{error}</div>}

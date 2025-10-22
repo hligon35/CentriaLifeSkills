@@ -1,6 +1,7 @@
 "use client"
 import { usePathname } from 'next/navigation'
 import { APP_TITLE } from '@/lib/appConfig'
+import Link from 'next/link'
 
 export default function Header() {
   const pathname = usePathname()
@@ -16,13 +17,38 @@ export default function Header() {
 
 function DesktopTopBar({ title }: { title: string }) {
   return (
-    <header className="hidden md:flex fixed top-0 inset-x-0 z-40 h-14 bg-[#623394] text-white items-center justify-center relative">
-      {/* Centered logo + title */}
-      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 select-none">
+    <header className="hidden md:flex fixed top-0 inset-x-0 z-40 h-14 bg-[#623394] text-white items-center justify-center">
+      {/* Centered logo + title → link to home */}
+      <Link href="/" aria-label="Go to home" className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 select-none hover:opacity-95 active:opacity-90">
         <span aria-hidden className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#623394] font-bold text-sm">CL</span>
         <span className="font-semibold tracking-wide">{title}</span>
+      </Link>
+      {/* Right-side actions */}
+      <div className="absolute right-3 flex items-center gap-2">
+        <LogoutButton />
       </div>
     </header>
+  )
+}
+
+function LogoutButton() {
+  async function doLogout() {
+    try {
+      await fetch('/api/logout', { method: 'POST' })
+    } catch {}
+    // Always bounce to login
+    if (typeof window !== 'undefined') window.location.href = '/login'
+  }
+  return (
+    <button
+      onClick={doLogout}
+      className="inline-flex items-center gap-1 rounded border border-white/20 bg-white/10 hover:bg-white/20 px-2 py-1 text-sm"
+      title="Log out"
+      aria-label="Log out"
+    >
+      <IconPower />
+      <span className="hidden sm:inline">Logout</span>
+    </button>
   )
 }
 

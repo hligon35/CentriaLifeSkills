@@ -26,7 +26,11 @@ export async function POST(req: NextRequest) {
 
     const token = await signJwt({ sub: user.id, role: user.role as any, name: user.name || undefined })
     const isProd = process.env.NODE_ENV === 'production'
-    cookies().set('token', token, { httpOnly: true, secure: isProd, sameSite: 'strict', path: '/' })
+    const host = req.nextUrl.hostname
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1'
+    const allowInsecureLocal = process.env.ALLOW_INSECURE_LOCAL === '1'
+    const secureCookie = isProd && !isLocalHost && !allowInsecureLocal
+    cookies().set('token', token, { httpOnly: true, secure: secureCookie, sameSite: 'strict', path: '/' })
     return NextResponse.json({ ok: true })
   } catch (e) {
     // Avoid leaking details; return generic error
