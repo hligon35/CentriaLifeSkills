@@ -15,7 +15,12 @@ export async function register() {
     const base = (process.env.KEEPALIVE_PING_URL || process.env.RENDER_EXTERNAL_URL || '').replace(/\/$/, '')
     if (!base) return
 
-    const pingUrl = `${base}/api/health`
+    // Multiple candidates in case one path is blocked; we'll try in order
+    const candidates = [
+      `${base}/api/health`,
+      `${base}/api/keepalive`,
+      base,
+    ]
     const intervalMs = Math.max(60000, Number(process.env.KEEPALIVE_INTERVAL_MS || 180_000)) // default 3 minutes
 
     const jitter = Math.floor(Math.random() * 10_000)
@@ -23,7 +28,29 @@ export async function register() {
 
     async function ping() {
       try {
-        await fetch(pingUrl, { cache: 'no-store' })
+        // Try HEAD first where reasonable
+        const [url1, url2, url3] = candidates
+        let ok = false
+        try {
+          const r1 = await fetch(url1, { method: 'HEAD', cache: 'no-store' })
+          ok = r1.ok
+        } catch {}
+        if (!ok) {
+          try {
+            const r2 = await fetch(url2, { method: 'HEAD', cache: 'no-store' })
+            ok = r2.ok
+          } catch {}
+        }
+        if (!ok) {
+          try {
+            const r3 = await fetch(url3, { method: 'HEAD', cache: 'no-store' })
+            ok = r3.ok
+          } catch {}
+        }
+        // As final fallback, GET health
+        if (!ok) {
+          try { await fetch(url1, { cache: 'no-store' }) } catch {}
+        }
       } catch {
         // ignore network errors
       }

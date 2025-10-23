@@ -76,7 +76,7 @@ export default function BoardClient() {
       )}
       <div className="mb-2 text-xs uppercase tracking-wide text-gray-500 font-semibold">Create a Post</div>
       {/* category & tag filters removed */}
-      <div className="mb-6 rounded border bg-white p-3 sm:p-4">
+  <div className="mb-6 rounded border bg-white p-3 sm:p-4" data-tour="board-composer">
         <input className="mb-2 w-full rounded border px-3 py-2" placeholder="Post title" value={title} onChange={e => setTitle(e.target.value)} />
         <textarea className="mb-2 w-full rounded border px-3 py-2" placeholder="Share updates (no PHI in examples)" value={body} onChange={e => setBody(e.target.value)} />
         <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -102,7 +102,7 @@ export default function BoardClient() {
             </label>
           </div>
         )}
-        <button onClick={createPost} className="rounded bg-brand-600 text-white px-4 py-2">Post</button>
+  <button onClick={createPost} className="rounded bg-brand-600 text-white px-4 py-2" data-tour="board-post-button">Post</button>
       </div>
       <div className="space-y-4">
         {posts.length === 0 && (

@@ -54,11 +54,11 @@ function DesktopTopBar({ title }: { title: string }) {
       <div className="absolute right-3 flex items-center gap-2">
         <button
           onClick={() => {
-            // Infer role for tailored tour
+            // Infer role for tailored tour (force start, bypass skip flag)
             fetch('/api/auth/me').then(r => r.ok ? r.json() : null).then(j => {
               const role = (j?.user?.role || 'PARENT') as 'ADMIN'|'THERAPIST'|'PARENT'
-              tour.start(role)
-            }).catch(() => tour.start('PARENT'))
+              tour.start(role, { force: true })
+            }).catch(() => tour.start('PARENT', { force: true }))
           }}
           className="inline-flex items-center gap-1 rounded border border-white/20 bg-white/10 hover:bg-white/20 px-2 py-1 text-sm"
         >

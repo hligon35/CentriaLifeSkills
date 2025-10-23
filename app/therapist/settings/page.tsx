@@ -147,7 +147,16 @@ export default function TherapistSettingsPage() {
 
       <div className="flex items-center justify-between border-t pt-4">
         <div className="text-xs text-gray-600">{status}</div>
-        <button type="button" onClick={saveProfile} className="rounded bg-brand-600 text-white px-4 py-2 text-sm">Save changes</button>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => {
+            try {
+              localStorage.removeItem('tour:auto:THERAPIST');
+              localStorage.removeItem('tour:skip:THERAPIST');
+            } catch {}
+            fetch('/api/tour/skip?role=THERAPIST', { method: 'DELETE' }).catch(()=>{})
+          }} className="rounded border px-3 py-2 text-sm">Reset tour</button>
+          <button type="button" onClick={saveProfile} className="rounded bg-brand-600 text-white px-4 py-2 text-sm" data-tour="settings-save">Save changes</button>
+        </div>
       </div>
     </main>
   )

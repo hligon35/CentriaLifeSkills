@@ -37,6 +37,30 @@ npm run dev
 ## Security & Privacy
 
 ## DevOps
+### Keepalive on Render (prevent sleep)
+
+Two supported tactics to keep the Render web service warm:
+
+1) Server-side self‑ping (no extra services)
+   - Set environment variables on your Render Web Service:
+     - `KEEPALIVE=1`
+     - `RENDER_EXTERNAL_URL` (Render sets this automatically; or set `KEEPALIVE_PING_URL` explicitly)
+     - Optional: `KEEPALIVE_INTERVAL_MS` (default 180000 = 3 minutes)
+   - The app will periodically HEAD/GET one of these endpoints:
+     - `/api/health` (preferred)
+     - `/api/keepalive`
+     - `/` (fallback)
+   - Implemented in `instrumentation.ts` and runs when the server boots.
+
+2) External ping (Render Cron Job or uptime monitor)
+   - Use the included endpoint: `GET https://<your-host>/api/keepalive`
+   - Optional protection: set `KEEPALIVE_TOKEN` env var and ping with `?token=<value>` or header `X-Keepalive-Token: <value>`.
+   - On Render, create a Cron Job service to call this endpoint every 3–5 minutes.
+
+Notes:
+- Health endpoint: `/api/health` supports GET/HEAD and disables caching.
+- Keepalive endpoint: `/api/keepalive` returns 204 quickly and is suitable for external pingers.
+
 ## Test credentials
 
 Local seed creates three users with the same password:

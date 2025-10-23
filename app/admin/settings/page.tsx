@@ -122,7 +122,16 @@ export default function AdminSettingsPage() {
           <p className="mt-1 text-xs text-gray-500">Requires OIDC env vars; toggle affects login UI.</p>
         </section>
 
-        <button onClick={save} disabled={saving} className="rounded bg-brand-600 text-white px-4 py-2 disabled:opacity-60">{saving ? 'Saving…' : 'Save settings'}</button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => {
+            try {
+              localStorage.removeItem('tour:auto:ADMIN');
+              localStorage.removeItem('tour:skip:ADMIN');
+            } catch {}
+            fetch('/api/tour/skip?role=ADMIN', { method: 'DELETE' }).catch(()=>{})
+          }} className="rounded border px-3 py-2 text-sm">Reset tour</button>
+          <button onClick={save} disabled={saving} className="rounded bg-brand-600 text-white px-4 py-2 disabled:opacity-60" data-tour="settings-save">{saving ? 'Saving…' : 'Save settings'}</button>
+        </div>
       </div>
     </main>
   )

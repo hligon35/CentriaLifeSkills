@@ -71,7 +71,7 @@ export default function AdminDirectoryPage() {
         <section>
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-medium">Staff</h2>
-            <input value={sQuery} onChange={e=>setSQuery(e.target.value)} placeholder="Search staff" className="border rounded px-2 py-1 text-sm" />
+            <input value={sQuery} onChange={e=>setSQuery(e.target.value)} placeholder="Search staff" className="border rounded px-2 py-1 text-sm" data-tour="directory-staff-search" />
           </div>
       <ul className="space-y-2">
             {staff.map(u => (
@@ -103,7 +103,7 @@ export default function AdminDirectoryPage() {
         <section>
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-medium">Students</h2>
-            <input value={stQuery} onChange={e=>setStQuery(e.target.value)} placeholder="Search students" className="border rounded px-2 py-1 text-sm" />
+            <input value={stQuery} onChange={e=>setStQuery(e.target.value)} placeholder="Search students" className="border rounded px-2 py-1 text-sm" data-tour="directory-students-search" />
           </div>
       <ul className="space-y-2">
             {students.map(s => (

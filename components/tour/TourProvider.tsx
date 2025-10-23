@@ -10,7 +10,7 @@ export type TourState = {
   active: boolean
   steps: TourStep[]
   index: number
-  start: (role: Role) => void
+  start: (role: Role, opts?: { force?: boolean }) => void
   stop: () => void
   next: () => void
   prev: () => void
@@ -49,6 +49,12 @@ export default function TourProvider({ children }: { children: React.ReactNode }
         if (!role) return
         const skipKey = `tour:skip:${role}`
         if (localStorage.getItem(skipKey) === '1') return
+        // Also check server-side cookie flag
+        try {
+          const s = await fetch(`/api/tour/skip?role=${role}`)
+          const sj = await s.json().catch(()=>null)
+          if (sj?.skip) return
+        } catch {}
         const autoKey = `tour:auto:${role}`
         if (localStorage.getItem(autoKey) === '1') return
         if (cancelled) return
@@ -59,9 +65,9 @@ export default function TourProvider({ children }: { children: React.ReactNode }
     return () => { cancelled = true }
   }, [pathname, active])
 
-  function start(role: Role) {
+  function start(role: Role, opts?: { force?: boolean }) {
     const key = `tour:skip:${role}`
-    if (typeof window !== 'undefined' && localStorage.getItem(key) === '1') {
+    if (!opts?.force && typeof window !== 'undefined' && localStorage.getItem(key) === '1') {
       return
     }
     const s = getRoleSteps(role)

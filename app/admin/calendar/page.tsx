@@ -12,7 +12,7 @@ export default function AdminCalendarPage() {
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-center sm:text-left">Admin Calendar</h1>
       </div>
-      <div className="mb-4 flex gap-2">
+  <div className="mb-4 flex gap-2" data-tour="calendar-tabs">
         <button className={btn(tab==='schedule-post')} onClick={()=>setTab('schedule-post')}>Message Board</button>
         <button className={btn(tab==='meeting')} onClick={()=>setTab('meeting')}>Request/Schedule Meeting</button>
         <button className={btn(tab==='work-schedule')} onClick={()=>setTab('work-schedule')}>Upload Work Schedules</button>

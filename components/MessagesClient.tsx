@@ -105,7 +105,7 @@ export default function MessagesClient() {
           {counterparts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
       </div>
-  <div className="h-[60vh] overflow-y-auto flex flex-col border rounded bg-white p-2 sm:p-3 space-y-2" aria-live="polite">
+  <div className="h-[60vh] overflow-y-auto flex flex-col border rounded bg-white p-2 sm:p-3 space-y-2" aria-live="polite" data-tour="messages-list">
         {messages.map(m => {
           const s = m.sender
           const isParent = (s?.role || s?.email || '').toUpperCase().includes('PARENT')
@@ -141,7 +141,7 @@ export default function MessagesClient() {
         <input type="file" accept="image/*,video/*" className="hidden" id="media" onChange={e => setMedia(e.target.files?.[0] || null)} />
         <label htmlFor="media" className="rounded border px-3 py-2 cursor-pointer text-sm">{mediaUploading ? 'Uploading…' : media ? 'Change' : 'Media'}</label>
         {media && !mediaUploading && <span className="text-xs text-gray-600 max-w-[120px] truncate">{media.name}</span>}
-        <button onClick={send} disabled={!text.trim() || mediaUploading} className="rounded bg-brand-600 text-white px-4 py-2 disabled:opacity-60">Send</button>
+  <button onClick={send} disabled={!text.trim() || mediaUploading} className="rounded bg-brand-600 text-white px-4 py-2 disabled:opacity-60" data-tour="send-button">Send</button>
       </div>
       {mediaError && <div className="mt-2 text-xs text-red-600" role="alert">{mediaError}</div>}
     </main>
