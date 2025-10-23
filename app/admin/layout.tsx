@@ -16,8 +16,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   ]
   return (
     <section className="mx-auto max-w-6xl p-4 md:pt-0">
-      {/* Offset sticky tabs below fixed desktop header (h-14) and remove top padding on md+ so it touches header */}
-      <PathNavTabs items={tabs} className="md:top-14" />
+      {/* Offset sticky tabs below fixed desktop header (h-16) and remove top padding on md+ so it touches header */}
+      <PathNavTabs items={tabs} className="md:top-16" />
       {children}
     </section>
   )

@@ -14,6 +14,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   const h = headers()
   const path = h.get('x-invoke-path') || ''
   const hideHeader = false
+  const isLogin = path.startsWith('/login')
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -27,8 +28,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   <body className="min-h-screen bg-gray-50 text-gray-900 flex flex-col">
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-white px-3 py-2 rounded border shadow">Skip to content</a>
         {!hideHeader && <Header />}
-        <main id="main" className={`flex-1 pb-20`}>{children}</main>
-        <footer className="mt-10 py-6 text-center text-xs text-gray-500">
+        <main id="main" className={`flex-1 ${isLogin ? 'pb-6' : 'pb-10'}`}>{children}</main>
+        <footer className={`${isLogin ? 'mt-2' : 'mt-4'} py-6 text-center text-xs text-gray-500`}>
           {/* Insert privacy policy link here for GDPR/FERPA */}
           © {new Date().getFullYear()} BuddyBoard
         </footer>

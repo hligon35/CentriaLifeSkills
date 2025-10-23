@@ -14,8 +14,8 @@ export default async function ParentSectionLayout({ children }: { children: Reac
   ]
   return (
     <section className="mx-auto max-w-5xl p-4 md:pt-0">
-      {/* Offset below fixed desktop header and remove top padding on md+ */}
-      <PathNavTabs items={tabs} className="md:top-14" />
+      {/* Offset below fixed desktop header (h-16) and remove top padding on md+ */}
+      <PathNavTabs items={tabs} className="md:top-16" />
       {children}
     </section>
   )

@@ -1,5 +1,6 @@
 "use client"
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { APP_TITLE } from '@/lib/appConfig'
 import Link from 'next/link'
 
@@ -16,13 +17,37 @@ export default function Header() {
 }
 
 function DesktopTopBar({ title }: { title: string }) {
+  const [displayName, setDisplayName] = useState<string | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    fetch('/api/auth/me')
+      .then(r => r.ok ? r.json() : null)
+      .then(j => {
+        if (!alive || !j?.user) { if (alive) setDisplayName(null); return }
+        const name: string | undefined = j.user.name
+        const role: string | undefined = j.user.role
+        const first = name?.trim().split(/\s+/)[0]
+        const byRole = role === 'ADMIN' ? 'Admin' : role === 'THERAPIST' ? 'Therapist' : role === 'PARENT' ? 'Parent' : undefined
+        setDisplayName(first || byRole || null)
+      })
+      .catch(() => { if (alive) setDisplayName(null) })
+    return () => { alive = false }
+  }, [])
+
+  const baseGreeting = `Welcome to ${title}`
+  const greeting = displayName ? `${baseGreeting}, ${displayName}` : baseGreeting
+
   return (
-    <header className="hidden md:flex fixed top-0 inset-x-0 z-40 h-14 bg-[#623394] text-white items-center justify-center">
-      {/* Centered logo + title → link to home */}
-      <Link href="/" aria-label="Go to home" className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 select-none hover:opacity-95 active:opacity-90">
-        <span aria-hidden className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#623394] font-bold text-sm">CL</span>
-        <span className="font-semibold tracking-wide">{title}</span>
-      </Link>
+    <header className="hidden md:flex fixed top-0 inset-x-0 z-40 h-16 bg-[#623394] text-white items-center">
+      {/* Center: logo next to greeting */}
+      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 text-center">
+        <Link href="/" aria-label="Go to home" className="select-none hover:opacity-95 active:opacity-90">
+          <img src="/api/assets/buddyBoard" alt="BuddyBoard" className="h-16 max-h-full w-auto object-contain" />
+        </Link>
+        <span className="font-medium text-sm sm:text-base">{greeting}</span>
+      </div>
+
       {/* Right-side actions */}
       <div className="absolute right-3 flex items-center gap-2">
         <LogoutButton />
