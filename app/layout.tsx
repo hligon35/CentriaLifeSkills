@@ -1,6 +1,7 @@
 import './globals.css'
 import { ReactNode } from 'react'
 import Header from '@/components/Header'
+import TourProvider from '@/components/tour/TourProvider'
 import { headers } from 'next/headers'
 
 export const metadata = {
@@ -27,8 +28,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
   <body className="min-h-screen bg-gray-50 text-gray-900 flex flex-col">
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-white px-3 py-2 rounded border shadow">Skip to content</a>
-        {!hideHeader && <Header />}
-        <main id="main" className={`flex-1 ${isLogin ? 'pb-6' : 'pb-10'}`}>{children}</main>
+        <TourProvider>
+          {!hideHeader && <Header />}
+          <main id="main" className={`flex-1 ${isLogin ? 'pb-6' : 'pb-10'}`}>{children}</main>
+        </TourProvider>
         <footer className={`${isLogin ? 'mt-2' : 'mt-4'} py-6 text-center text-xs text-gray-500`}>
           {/* Insert privacy policy link here for GDPR/FERPA */}
           © {new Date().getFullYear()} BuddyBoard

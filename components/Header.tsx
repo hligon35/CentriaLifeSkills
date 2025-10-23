@@ -3,6 +3,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { APP_TITLE } from '@/lib/appConfig'
 import Link from 'next/link'
+import { useTour } from './tour/TourProvider'
 
 export default function Header() {
   const pathname = usePathname()
@@ -18,6 +19,7 @@ export default function Header() {
 
 function DesktopTopBar({ title }: { title: string }) {
   const [displayName, setDisplayName] = useState<string | null>(null)
+  const tour = useTour()
 
   useEffect(() => {
     let alive = true
@@ -50,6 +52,18 @@ function DesktopTopBar({ title }: { title: string }) {
 
       {/* Right-side actions */}
       <div className="absolute right-3 flex items-center gap-2">
+        <button
+          onClick={() => {
+            // Infer role for tailored tour
+            fetch('/api/auth/me').then(r => r.ok ? r.json() : null).then(j => {
+              const role = (j?.user?.role || 'PARENT') as 'ADMIN'|'THERAPIST'|'PARENT'
+              tour.start(role)
+            }).catch(() => tour.start('PARENT'))
+          }}
+          className="inline-flex items-center gap-1 rounded border border-white/20 bg-white/10 hover:bg-white/20 px-2 py-1 text-sm"
+        >
+          Start tour
+        </button>
         <LogoutButton />
       </div>
     </header>
