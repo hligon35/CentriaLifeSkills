@@ -61,6 +61,36 @@ Notes:
 - Health endpoint: `/api/health` supports GET/HEAD and disables caching.
 - Keepalive endpoint: `/api/keepalive` returns 204 quickly and is suitable for external pingers.
 
+### Production: verify and quick‑seed default users
+
+If login fails on your live site using the test credentials, your production database likely doesn't have the seeded users yet.
+
+Safe, token‑gated maintenance endpoints are included to help you verify and seed once:
+
+1) Configure a strong token in your hosting environment
+
+```
+ADMIN_MAINT_TOKEN=<a long random string>
+```
+
+2) Verify whether the three defaults exist
+
+- GET https://<your-host>/api/admin/debug/users?token=<ADMIN_MAINT_TOKEN>
+- Response shows total user count and existence flags for therapist/parent/admin.
+
+3) Seed the three defaults if missing
+
+- POST https://<your-host>/api/admin/seed/basic?token=<ADMIN_MAINT_TOKEN>
+- Creates/upserts:
+  - therapist@example.com (THERAPIST)
+  - parent@example.com (PARENT)
+  - admin@example.com (ADMIN)
+- All with password: Password123!
+
+4) Important: remove the token afterwards
+
+- Unset ADMIN_MAINT_TOKEN after you're done to disable these endpoints.
+
 ## Test credentials
 
 Local seed creates three users with the same password:
