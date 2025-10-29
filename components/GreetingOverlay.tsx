@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 type Memo = { id: string; title: string; body: string }
 
@@ -10,7 +10,7 @@ export default function GreetingOverlay({ userId }: Props) {
   const [memos, setMemos] = useState<Memo[]>([])
   const storageKey = userId ? `urgentMemoSeen:${userId}` : 'urgentMemoSeen:anon'
 
-  function evaluateOpen(fetched: Memo[]) {
+  const evaluateOpen = useCallback((fetched: Memo[]) => {
     if (!fetched || fetched.length === 0) { setOpen(false); return }
     try {
       const raw = localStorage.getItem(storageKey)
@@ -18,7 +18,7 @@ export default function GreetingOverlay({ userId }: Props) {
       const unseen = fetched.some(m => !seen.includes(m.id))
       setOpen(unseen)
     } catch { setOpen(true) }
-  }
+  }, [storageKey])
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -43,7 +43,7 @@ export default function GreetingOverlay({ userId }: Props) {
       }
     })()
     return () => { cancelled = true }
-  }, [])
+  }, [evaluateOpen])
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">

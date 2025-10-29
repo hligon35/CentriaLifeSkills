@@ -1,5 +1,5 @@
 "use client"
-import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import type { TourStep, Role } from '../../lib/tour'
 import { getRoleSteps } from '../../lib/tour'
@@ -32,7 +32,24 @@ export default function TourProvider({ children }: { children: React.ReactNode }
     if (pendingNav.current && pathname?.startsWith(pendingNav.current)) {
       pendingNav.current = null
     }
-  }, [pathname, active])
+  }, [pathname, active, start])
+
+  
+
+  const start = useCallback((role: Role, opts?: { force?: boolean }) => {
+    const key = `tour:skip:${role}`
+    if (!opts?.force && typeof window !== 'undefined' && localStorage.getItem(key) === '1') {
+      return
+    }
+    const s = getRoleSteps(role)
+    setSteps(s)
+    setIndex(0)
+    setActive(true)
+    if (s[0]?.navigateTo && !pathname?.startsWith(s[0].navigateTo)) {
+      pendingNav.current = s[0].navigateTo
+      router.push(s[0].navigateTo)
+    }
+  }, [pathname, router])
 
   // Auto-start tour once per role on first eligible page visit (not on login/register)
   useEffect(() => {
@@ -63,29 +80,14 @@ export default function TourProvider({ children }: { children: React.ReactNode }
       } catch {}
     })()
     return () => { cancelled = true }
-  }, [pathname, active])
+  }, [pathname, active, start])
 
-  function start(role: Role, opts?: { force?: boolean }) {
-    const key = `tour:skip:${role}`
-    if (!opts?.force && typeof window !== 'undefined' && localStorage.getItem(key) === '1') {
-      return
-    }
-    const s = getRoleSteps(role)
-    setSteps(s)
-    setIndex(0)
-    setActive(true)
-    if (s[0]?.navigateTo && !pathname?.startsWith(s[0].navigateTo)) {
-      pendingNav.current = s[0].navigateTo
-      router.push(s[0].navigateTo)
-    }
-  }
-
-  function stop() {
+  const stop = useCallback(() => {
     setActive(false)
     setSteps([])
     setIndex(0)
-  }
-  function next() {
+  }, [])
+  const next = useCallback(() => {
     setIndex(i => {
       const ni = Math.min(steps.length - 1, i + 1)
       if (steps[ni]?.navigateTo && !pathname?.startsWith(steps[ni].navigateTo)) {
@@ -94,12 +96,12 @@ export default function TourProvider({ children }: { children: React.ReactNode }
       }
       return ni
     })
-  }
-  function prev() {
+  }, [pathname, router, steps])
+  const prev = useCallback(() => {
     setIndex(i => Math.max(0, i - 1))
-  }
+  }, [])
 
-  const value = useMemo(() => ({ active, steps, index, start, stop, next, prev }), [active, steps, index])
+  const value = useMemo(() => ({ active, steps, index, start, stop, next, prev }), [active, steps, index, start, stop, next, prev])
 
   return (
     <TourCtx.Provider value={value}>

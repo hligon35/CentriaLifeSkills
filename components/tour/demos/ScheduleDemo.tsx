@@ -1,14 +1,14 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 type Appt = { time: string; who: string }
 
 export default function ScheduleDemo() {
-  const base: Appt[] = [
+  const base: Appt[] = useMemo(() => [
     { time: '9:00 AM', who: 'Student A' },
     { time: '11:00 AM', who: 'Student B' },
     { time: '2:00 PM', who: 'Team Meeting' },
-  ]
+  ], [])
   const [items, setItems] = useState<Appt[]>([])
   useEffect(() => {
     let i = 0
@@ -18,7 +18,7 @@ export default function ScheduleDemo() {
       if (i >= base.length) clearInterval(t)
     }, 500)
     return () => clearInterval(t)
-  }, [])
+  }, [base])
 
   return (
     <div className="space-y-2">
