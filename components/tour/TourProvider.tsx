@@ -32,7 +32,7 @@ export default function TourProvider({ children }: { children: React.ReactNode }
     if (pendingNav.current && pathname?.startsWith(pendingNav.current)) {
       pendingNav.current = null
     }
-  }, [pathname, active, start])
+  }, [pathname, active])
 
   
 
