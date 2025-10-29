@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 
 export default function LoginPage() {
   // Show dev shortcuts only in non-production builds, unless explicitly enabled via NEXT_PUBLIC_SHOW_DEV_SSO=1
@@ -88,12 +89,13 @@ export default function LoginPage() {
       <div className="grid gap-4 md:grid-cols-3 items-center">
         {/* Left: Logo (col 1), aligned to the right to sit close to the form */}
         <div className="md:col-start-1 md:col-span-1 flex items-center justify-center md:justify-end">
-          <img
+          <Image
             src="/api/assets/buddyBoard"
             alt="BuddyBoard Logo"
+            width={256}
+            height={128}
             className="w-48 md:w-64 h-auto object-contain"
-            loading="eager"
-            decoding="async"
+            priority
           />
         </div>
 

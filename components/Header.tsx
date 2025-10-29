@@ -3,6 +3,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { APP_TITLE } from '@/lib/appConfig'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useTour } from './tour/TourProvider'
 
 export default function Header() {
@@ -45,7 +46,7 @@ function DesktopTopBar({ title }: { title: string }) {
       {/* Center: logo next to greeting */}
       <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 text-center">
         <Link href="/" aria-label="Go to home" className="select-none hover:opacity-95 active:opacity-90">
-          <img src="/api/assets/buddyBoard" alt="BuddyBoard" className="h-16 max-h-full w-auto object-contain" />
+          <Image src="/api/assets/buddyBoard" alt="BuddyBoard" width={256} height={64} className="h-16 max-h-full w-auto object-contain" priority />
         </Link>
         <span className="font-medium text-sm sm:text-base">{greeting}</span>
       </div>

@@ -152,7 +152,7 @@ export default function TourOverlay({ step, index, count, onNext, onPrev, onClos
                 await fetch(`/api/tour/skip?role=${role}`, { method: e.target.checked ? 'POST' : 'DELETE' })
               } catch {}
             }} />
-            Don't show again for my role
+            Don&apos;t show again for my role
           </label>
         </div>
       </div>

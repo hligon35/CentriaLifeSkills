@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState, useRef } from 'react'
+import Image from 'next/image'
 
 // Separate localStorage key for parent draft
 const LS_PARENT_PROFILE_KEY = 'parent:profileDraft:v1'
@@ -102,13 +103,13 @@ export default function ParentSettingsPage() {
       <section className="rounded border bg-white p-4 space-y-4">
         <h2 className="font-medium">Profile Photo</h2>
         <div className="flex items-center gap-4">
-          <div className="h-20 w-20 rounded-full bg-gray-100 border flex items-center justify-center overflow-hidden">
-            {draft.photoUrl ? <img src={draft.photoUrl} alt="profile" className="object-cover h-full w-full" /> : <span className="text-xs text-gray-500">No photo</span>}
+          <div className="h-20 w-20 rounded-full bg-gray-100 border flex items-center justify-center overflow-hidden relative">
+            {draft.photoUrl ? <Image src={draft.photoUrl} alt="profile" fill className="object-cover" /> : <span className="text-xs text-gray-500">No photo</span>}
           </div>
           <div className="space-y-2 text-xs text-gray-600">
             <div>Upload a new photo (JPG/PNG).</div>
             <div className="flex items-center gap-2">
-              <input ref={fileRef} onChange={handlePhoto} type="file" accept="image/*" className="hidden" />
+              <input ref={fileRef} onChange={handlePhoto} type="file" accept="image/*" className="hidden" aria-label="Upload profile photo" />
               <button type="button" className="rounded border px-3 py-1 text-sm" onClick={()=>fileRef.current?.click()} disabled={draft.uploading}>{draft.uploading ? 'Uploading…' : 'Choose file'}</button>
               {draft.photoUrl && <button type="button" className="rounded border px-3 py-1 text-sm" onClick={()=>setDraft(d=>({...d, photoUrl:null}))}>Remove</button>}
             </div>
