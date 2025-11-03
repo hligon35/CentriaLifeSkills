@@ -34,6 +34,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   } catch (e) {
     // Avoid leaking details; return generic error
+    // Log server-side details for ops (Sentry, logs) without leaking to client
+    console.error('[auth/login] internal error')
+    console.error(e)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
