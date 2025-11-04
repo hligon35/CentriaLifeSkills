@@ -15,8 +15,7 @@ model User {
   passwordHash            String
   photoUrl                String?
   childProfile            String?
-  createdAt               DateTime          rnd_43PZna…
-      @default(now())
+  createdAt               DateTime           @default(now())
   icsToken                String?                  @unique
   language                String?
   appointmentsAsParent    Appointment[]            @relation("apptParent")
