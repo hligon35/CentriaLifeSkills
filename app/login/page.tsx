@@ -83,25 +83,18 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl p-6 md:pt-16">
-    {/* Stable spacer below fixed header to prevent snap/jank */}
-    <div className="hidden md:block h-12" aria-hidden="true" />
-      <div className="grid gap-4 md:grid-cols-3 items-center">
-        {/* Left: Logo (col 1), aligned to the right to sit close to the form */}
-        <div className="md:col-start-1 md:col-span-1 flex items-center justify-center md:justify-end">
-          <Image
-            src="/api/assets/buddyBoard"
-            alt="BuddyBoard Logo"
-            width={256}
-            height={128}
-            className="w-48 md:w-64 h-auto object-contain"
-            priority
-          />
-        </div>
-
-  {/* Middle: Login form (col 2) */}
-          <div className="md:col-start-2 md:col-span-1">
-          <div className="rounded-lg border bg-white p-4 space-y-2 max-w-sm">
+    <main className="min-h-[calc(100vh-64px)] md:min-h-screen flex items-center justify-center p-6">
+      <div className="w-full max-w-md flex flex-col items-center gap-4">
+        <Image
+          src="/api/assets/buddyBoard"
+          alt="BuddyBoard Logo"
+          width={256}
+          height={128}
+          className="w-40 md:w-56 h-auto object-contain"
+          priority
+        />
+        <div className="w-full">
+          <div className="rounded-lg border bg-white p-4 space-y-2 max-w-sm mx-auto">
             <h1 className="text-xl font-semibold text-center">Sign in</h1>
             {error && <div className="rounded bg-red-50 border border-red-200 text-red-800 px-3 py-2 text-sm">{error}</div>}
             <form onSubmit={(e) => { e.preventDefault(); handlePasswordLogin(); }} className="space-y-2">

@@ -52,6 +52,8 @@ export default function AdminDirectoryPage() {
   const [modTotal, setModTotal] = useState(0)
   const [modCategory, setModCategory] = useState('')
   const [modAuthor, setModAuthor] = useState('')
+  // Gate refreshes to Apply button and initial mount
+  const [modRefresh, setModRefresh] = useState(1)
 
   useEffect(() => {
     fetch(`/api/directory/staff?search=${encodeURIComponent(sQuery)}`)
@@ -83,10 +85,11 @@ export default function AdminDirectoryPage() {
       .then(j => {
         setModPosts(j.posts || [])
         setModTotal(j.total || 0)
-        setModPage(j.page || modPage)
       })
       .catch(() => { setModPosts([]); setModTotal(0) })
-  }, [modPage, modPageSize, modCategory, modAuthor])
+  // Intentionally gated by modRefresh to avoid per-keystroke fetches from modCategory/modAuthor.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modPage, modPageSize, modRefresh])
 
   async function approvePost(id: string) {
     setModBusyId(id)
@@ -94,14 +97,8 @@ export default function AdminDirectoryPage() {
     setModBusyId(null)
     if (!r.ok) { setModStatus('Approve failed'); return }
     setModStatus('Approved')
-    // refresh current page
-    const q = new URLSearchParams()
-    q.set('page', String(modPage))
-    q.set('pageSize', String(modPageSize))
-    if (modCategory) q.set('category', modCategory)
-    if (modAuthor) q.set('author', modAuthor)
-    const r2 = await fetch(`/api/admin/moderation/pending?${q.toString()}`)
-    const j = await r2.json(); setModPosts(j.posts || []); setModTotal(j.total || 0)
+    // trigger refresh
+    setModRefresh(x => x + 1)
   }
   async function rejectPost(id: string) {
     setModBusyId(id)
@@ -109,14 +106,8 @@ export default function AdminDirectoryPage() {
     setModBusyId(null)
     if (!r.ok) { setModStatus('Reject failed'); return }
     setModStatus('Rejected')
-    // refresh current page
-    const q = new URLSearchParams()
-    q.set('page', String(modPage))
-    q.set('pageSize', String(modPageSize))
-    if (modCategory) q.set('category', modCategory)
-    if (modAuthor) q.set('author', modAuthor)
-    const r2 = await fetch(`/api/admin/moderation/pending?${q.toString()}`)
-    const j = await r2.json(); setModPosts(j.posts || []); setModTotal(j.total || 0)
+    // trigger refresh
+    setModRefresh(x => x + 1)
   }
 
   const importCsv = async () => {
@@ -149,7 +140,7 @@ export default function AdminDirectoryPage() {
               {[10,20,50,100].map(n=> <option key={n} value={n}>{n}</option>)}
             </select>
           </label>
-          <button className="rounded border px-3 py-1 text-sm" onClick={()=>{ setModPage(1) }}>Apply</button>
+          <button className="rounded border px-3 py-1 text-sm" onClick={()=>{ setModPage(1); setModRefresh(x=>x+1) }}>Apply</button>
           <div className="text-sm text-gray-600">{modStatus}</div>
           <a className="text-xs text-blue-700 underline ml-auto" href="/admin/moderation">Open full moderation</a>
         </div>
