@@ -34,6 +34,25 @@ export default function AdminDirectoryPage() {
   const [memoBusy, setMemoBusy] = useState(false)
   const [openStudents, setOpenStudents] = useState<Record<string, boolean>>({})
 
+  // Pending post approvals (from Moderation tab) — combined here
+  type PendingPost = {
+    id: string
+    title: string
+    body: string
+    imageUrl?: string | null
+    category?: string | null
+    createdAt: string
+    author?: { id: string; name?: string | null; email: string }
+  }
+  const [modPosts, setModPosts] = useState<PendingPost[]>([])
+  const [modBusyId, setModBusyId] = useState<string | null>(null)
+  const [modStatus, setModStatus] = useState('')
+  const [modPage, setModPage] = useState(1)
+  const [modPageSize, setModPageSize] = useState(20)
+  const [modTotal, setModTotal] = useState(0)
+  const [modCategory, setModCategory] = useState('')
+  const [modAuthor, setModAuthor] = useState('')
+
   useEffect(() => {
     fetch(`/api/directory/staff?search=${encodeURIComponent(sQuery)}`)
       .then(r => r.json()).then(d => setStaff(d.staff || [])).catch(() => setStaff([]))
@@ -52,6 +71,54 @@ export default function AdminDirectoryPage() {
       .catch(() => setApprovalList(new Set()))
   }, [])
 
+  // Load pending posts for approval (moderation)
+  useEffect(() => {
+    const q = new URLSearchParams()
+    q.set('page', String(modPage))
+    q.set('pageSize', String(modPageSize))
+    if (modCategory) q.set('category', modCategory)
+    if (modAuthor) q.set('author', modAuthor)
+    fetch(`/api/admin/moderation/pending?${q.toString()}`)
+      .then(r => r.json())
+      .then(j => {
+        setModPosts(j.posts || [])
+        setModTotal(j.total || 0)
+        setModPage(j.page || modPage)
+      })
+      .catch(() => { setModPosts([]); setModTotal(0) })
+  }, [modPage, modPageSize, modCategory, modAuthor])
+
+  async function approvePost(id: string) {
+    setModBusyId(id)
+    const r = await fetch('/api/admin/moderation/approve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: id }) })
+    setModBusyId(null)
+    if (!r.ok) { setModStatus('Approve failed'); return }
+    setModStatus('Approved')
+    // refresh current page
+    const q = new URLSearchParams()
+    q.set('page', String(modPage))
+    q.set('pageSize', String(modPageSize))
+    if (modCategory) q.set('category', modCategory)
+    if (modAuthor) q.set('author', modAuthor)
+    const r2 = await fetch(`/api/admin/moderation/pending?${q.toString()}`)
+    const j = await r2.json(); setModPosts(j.posts || []); setModTotal(j.total || 0)
+  }
+  async function rejectPost(id: string) {
+    setModBusyId(id)
+    const r = await fetch('/api/admin/moderation/reject', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: id }) })
+    setModBusyId(null)
+    if (!r.ok) { setModStatus('Reject failed'); return }
+    setModStatus('Rejected')
+    // refresh current page
+    const q = new URLSearchParams()
+    q.set('page', String(modPage))
+    q.set('pageSize', String(modPageSize))
+    if (modCategory) q.set('category', modCategory)
+    if (modAuthor) q.set('author', modAuthor)
+    const r2 = await fetch(`/api/admin/moderation/pending?${q.toString()}`)
+    const j = await r2.json(); setModPosts(j.posts || []); setModTotal(j.total || 0)
+  }
+
   const importCsv = async () => {
     setStatus('Importing...')
     const res = await fetch('/api/admin/directory/import', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: csvType, csv }) })
@@ -67,6 +134,53 @@ export default function AdminDirectoryPage() {
   return (
     <div className="max-w-5xl mx-auto p-4">
       <h1 className="text-xl font-semibold mb-4 text-center sm:text-left">Admin Directory</h1>
+      {/* Combined: Pending post approvals from Moderation */}
+      <section className="mb-8">
+        <h2 className="font-medium mb-2">Pending post approvals</h2>
+        <div className="mb-3 flex flex-wrap items-end gap-2">
+          <label className="text-sm">Category<br/>
+            <input value={modCategory} onChange={e=>setModCategory(e.target.value)} placeholder="e.g. ANNOUNCEMENT" className="rounded border px-2 py-1" />
+          </label>
+          <label className="text-sm">Author ID<br/>
+            <input value={modAuthor} onChange={e=>setModAuthor(e.target.value)} placeholder="user id" className="rounded border px-2 py-1" />
+          </label>
+          <label className="text-sm">Per page<br/>
+            <select value={modPageSize} onChange={e=>setModPageSize(Number(e.target.value))} className="rounded border px-2 py-1">
+              {[10,20,50,100].map(n=> <option key={n} value={n}>{n}</option>)}
+            </select>
+          </label>
+          <button className="rounded border px-3 py-1 text-sm" onClick={()=>{ setModPage(1) }}>Apply</button>
+          <div className="text-sm text-gray-600">{modStatus}</div>
+          <a className="text-xs text-blue-700 underline ml-auto" href="/admin/moderation">Open full moderation</a>
+        </div>
+        <ul className="space-y-3">
+          {modPosts.map(p => (
+            <li key={p.id} className="rounded border bg-white p-3">
+              <div className="flex items-center justify-between">
+                <div className="font-medium">{p.title}</div>
+                <div className="text-xs text-gray-500"><DateStamp date={p.createdAt} /></div>
+              </div>
+              <div className="text-xs text-gray-600">By: {p.author?.name || p.author?.email || 'Unknown'}{p.category ? ` • ${p.category}` : ''}</div>
+              <div className="mt-2 text-sm whitespace-pre-wrap">{p.body}</div>
+              {p.imageUrl && (
+                <Image src={p.imageUrl} alt="post" width={800} height={600} className="mt-2 max-h-60 w-full rounded border object-cover" />
+              )}
+              <div className="mt-3 flex gap-2">
+                <button className="rounded border px-3 py-1 text-sm" disabled={modBusyId===p.id} onClick={()=>approvePost(p.id)}>{modBusyId===p.id ? 'Working…' : 'Approve'}</button>
+                <button className="rounded border px-3 py-1 text-sm" disabled={modBusyId===p.id} onClick={()=>rejectPost(p.id)}>Reject</button>
+              </div>
+            </li>
+          ))}
+          {modPosts.length === 0 && (
+            <li className="text-sm text-gray-600">No pending posts.</li>
+          )}
+        </ul>
+        <div className="mt-3 flex items-center justify-between text-sm">
+          <button disabled={modPage<=1} className="rounded border px-3 py-1" onClick={()=>{ const np = Math.max(1, modPage-1); setModPage(np) }}>Prev</button>
+          <span>Page {modPage} of {Math.max(1, Math.ceil(modTotal / modPageSize))} · {modTotal} total</span>
+          <button disabled={modPage>=Math.max(1, Math.ceil(modTotal / modPageSize))} className="rounded border px-3 py-1" onClick={()=>{ const np = Math.min(Math.max(1, Math.ceil(modTotal / modPageSize)), modPage+1); setModPage(np) }}>Next</button>
+        </div>
+      </section>
       <div className="grid md:grid-cols-2 gap-6">
         <section>
           <div className="flex items-center justify-between mb-2">

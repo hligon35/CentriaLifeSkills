@@ -83,7 +83,9 @@ export default function LoginPage() {
   }
 
   return (
-  <main className="mx-auto max-w-5xl p-6">
+    <main className="mx-auto max-w-5xl p-6 md:pt-16">
+    {/* Stable spacer below fixed header to prevent snap/jank */}
+    <div className="hidden md:block h-12" aria-hidden="true" />
       <div className="grid gap-4 md:grid-cols-3 items-center">
         {/* Left: Logo (col 1), aligned to the right to sit close to the form */}
         <div className="md:col-start-1 md:col-span-1 flex items-center justify-center md:justify-end">
