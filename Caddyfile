@@ -1,0 +1,11 @@
+buddyboard.getsparqd.com {
+	encode gzip
+	# Forward everything to the Next.js app service
+	reverse_proxy app:3000
+	# Optional security headers (can be expanded as needed)
+	header {
+		X-Frame-Options "SAMEORIGIN"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+}

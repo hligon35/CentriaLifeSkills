@@ -21,7 +21,6 @@ async function main() {
     create: { email: 'admin@example.com', name: 'Admin User', role: 'ADMIN', passwordHash: pass }
   })
   console.log({ therapist, parent, admin })
-  console.log({ therapist, parent })
 }
 
 main().finally(() => prisma.$disconnect())
