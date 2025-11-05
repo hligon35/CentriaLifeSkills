@@ -27,7 +27,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   // Role-gated section layouts remain in their respective layout files.
   const h = headers()
   const path = h.get('x-invoke-path') || ''
-  const isLogin = path.startsWith('/login')
+  const nextUrl = h.get('next-url') || ''
+  const matched = h.get('x-matched-path') || ''
+  const isLogin = path.startsWith('/login') || nextUrl.startsWith('/login') || matched.startsWith('/login')
   const hideHeader = isLogin
   return (
     <html lang="en" suppressHydrationWarning>
