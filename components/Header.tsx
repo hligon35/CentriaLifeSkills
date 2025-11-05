@@ -10,6 +10,9 @@ export default function Header() {
   const pathname = usePathname()
   // Mobile nav removed; no role-dependent UI remains
 
+  // Hide the header on the login route to allow true vertical centering
+  if (pathname?.startsWith('/login')) return null
+
   return (
     <>
       <DesktopTopBar title={APP_TITLE} />
