@@ -3,11 +3,24 @@ import { ReactNode } from 'react'
 import Header from '@/components/Header'
 import TourProvider from '@/components/tour/TourProvider'
 import { headers } from 'next/headers'
+// Use the provided BuddyBoard icon for app icons (favicon, etc.)
+// Next supports importing static images and using them in metadata icons
+// The file resides at project root: BuddyBoardicon.png
+// We import from here so Next bundles/serves it correctly.
+import BuddyIcon from '../BuddyBoardicon.png'
 
 export const metadata = {
   title: 'BuddyBoard', // Insert school name
-  description: 'Secure communication platform for ABA Therapy school'
-}
+  description: 'Secure communication platform for ABA Therapy school',
+  icons: {
+    icon: [
+      { url: (BuddyIcon as any).src || (BuddyIcon as unknown as string), type: 'image/png', sizes: 'any' }
+    ],
+    apple: [
+      { url: (BuddyIcon as any).src || (BuddyIcon as unknown as string), sizes: '180x180' }
+    ]
+  }
+} satisfies any
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   // Show the desktop header uniformly across all sections (admin/parent/therapist)
