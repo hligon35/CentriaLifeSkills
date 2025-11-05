@@ -6,10 +6,8 @@ services:
     networks:
       - default
       - flashpost_default
-    ports:
-      - "3005:3000"
     environment:
-      - DATABASE_URL=postgresql://flashpost_user:flashpost_password@flashpost-postgres-1:5432/flashpost_dev?schema=public
+      - DATABASE_URL=file:./prisma/dev.db
       - JWT_SECRET=dev_secret
       - S3_ENDPOINT=http://minio:9000
       - S3_REGION=us-east-1
@@ -31,23 +29,8 @@ services:
     volumes:
       - minio_data:/data
 
-  caddy:
-    image: caddy:2-alpine
-    container_name: buddyboard-caddy
-    depends_on:
-      - app
-    ports:
-      - "8080:80"
-      - "8443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-
 volumes:
   minio_data: {}
-  caddy_data: {}
-  caddy_config: {}
 
 networks:
   flashpost_default:

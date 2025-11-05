@@ -1,0 +1,9 @@
+buddyboard.getsparqd.com {
+    encode zstd gzip
+
+    @www host www.buddyboard.getsparqd.com
+    redir @www https://buddyboard.getsparqd.com{uri}
+
+    # App is on the same Docker network as Caddy (flashpost_default)
+    reverse_proxy buddyboard-app:3000
+}
