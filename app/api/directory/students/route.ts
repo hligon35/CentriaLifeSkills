@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const q = (searchParams.get('search') || '').trim()
 
-  const nameFilter = q ? { name: { contains: q, mode: 'insensitive' } } : {}
+  const nameFilter = q ? { name: { contains: q } } : {}
 
   if (user.role === 'ADMIN') {
     const students = await prisma.student.findMany({
@@ -22,8 +22,8 @@ export async function GET(req: NextRequest) {
         id: true,
         name: true,
         parent: { select: { id: true, name: true, email: true, photoUrl: true } },
-        amTherapist: { select: { id: true, name: true, email: true, photoUrl: true } },
-  pmTherapist: { select: { id: true, name: true, email: true, photoUrl: true } },
+    amTherapist: { select: { id: true, name: true, email: true, photoUrl: true } },
+    pmTherapist: { select: { id: true, name: true, email: true, photoUrl: true } },
       },
       orderBy: { name: 'asc' }
     })
@@ -43,8 +43,8 @@ export async function GET(req: NextRequest) {
         id: true,
         name: true,
         parent: { select: { id: true, name: true, photoUrl: true } },
-        amTherapist: { select: { id: true, name: true, photoUrl: true } },
-  pmTherapist: { select: { id: true, name: true, photoUrl: true } },
+    amTherapist: { select: { id: true, name: true, photoUrl: true } },
+    pmTherapist: { select: { id: true, name: true, photoUrl: true } },
       },
       orderBy: { name: 'asc' }
     })
@@ -57,8 +57,8 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         name: true,
-        amTherapist: { select: { id: true, name: true, photoUrl: true } },
-  pmTherapist: { select: { id: true, name: true, photoUrl: true } },
+    amTherapist: { select: { id: true, name: true, photoUrl: true } },
+    pmTherapist: { select: { id: true, name: true, photoUrl: true } },
       },
       orderBy: { name: 'asc' }
     })

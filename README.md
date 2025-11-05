@@ -105,6 +105,23 @@ ADMIN_MAINT_TOKEN=<a long random string>
 
 - Unset ADMIN_MAINT_TOKEN after you're done to disable these endpoints.
 
+### Production: apply database migrations on deploy
+
+If you see Internal Server Error on login in production, it often means the database schema hasn’t been created yet.
+
+On Render, add a Post-deploy command to apply migrations:
+
+```bash
+npm run prisma:migrate:deploy
+```
+
+Requirements:
+- DATABASE_URL must point to a real, persistent database.
+- For production, prefer a managed Postgres instance (recommended). If you used SQLite locally, switch the Prisma datasource provider and run a fresh migration for Postgres.
+
+Notes:
+- Using SQLite in a web service on Render is not recommended unless you attach a persistent disk and understand the limitations.
+
 ## Test credentials
 
 Local seed creates additional users (all with Password123!):
