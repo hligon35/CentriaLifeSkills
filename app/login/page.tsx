@@ -82,8 +82,8 @@ export default function LoginPage() {
     }
   }
 
-  return (<div className="fixed inset-0 z-50 bg-gray-50 overflow-auto">
-      <div className="mx-auto max-w-5xl p-6 min-h-screen flex items-center justify-center">
+  return (
+    <div className="mx-auto max-w-5xl p-6 min-h-screen flex items-center justify-center">
       <div className="grid gap-6 md:grid-cols-3 items-center w-full">
         {/* Left: Logo (col 1), aligned to the right to sit close to the form */}
         <div className="md:col-start-1 md:col-span-1 flex items-center justify-center md:justify-end">
