@@ -122,16 +122,42 @@ Requirements:
 Notes:
 - Using SQLite in a web service on Render is not recommended unless you attach a persistent disk and understand the limitations.
 
+### Auto-rebuild and refresh on live changes (CI/CD)
+
+This repo includes a GitHub Actions workflow at `.github/workflows/deploy.yml`.
+
+What it does on every push to `main`:
+
+- Installs dependencies, generates Prisma client, typechecks, builds Next.js
+- Builds and pushes a Docker image to GHCR `ghcr.io/<owner>/<repo>:latest`
+- SSHes into your server and restarts the `app` service with Docker Compose
+
+To enable it, add repository secrets:
+
+- `SSH_HOST`: server hostname or IP
+- `SSH_USER`: SSH username
+- `SSH_KEY`: private key for the user (PEM)
+- `SSH_PORT` (optional): SSH port if not 22
+- `APP_DIR`: absolute path on the server containing `docker-compose.yml`
+
+Server prerequisites:
+
+- Docker + Docker Compose v2 installed
+- The server can access GHCR (workflow logs in during deploy)
+- If you use a CDN, purge cache after deploys for immediate asset refresh
+
+Local instant refresh remains available with `npm run dev` (Next.js Fast Refresh/HMR).
+
 ## Test credentials
 
 Local seed creates additional users (all with Password123!):
 
-- therapist@example.com (THERAPIST)
-- therapist2@example.com (THERAPIST)
-- therapist3@example.com (THERAPIST)
-- parent@example.com (PARENT)
-- parent2@example.com (PARENT)
-- admin@example.com (ADMIN)
+- `therapist@example.com` (THERAPIST)
+- `therapist2@example.com` (THERAPIST)
+- `therapist3@example.com` (THERAPIST)
+- `parent@example.com` (PARENT)
+- `parent2@example.com` (PARENT)
+- `admin@example.com` (ADMIN)
 
 Directory API (RBAC):
 
@@ -144,6 +170,7 @@ Use the Login link in the header or navigate to `/login`.
 - GitHub Actions CI for install/lint/typecheck/build. // Insert repo URL
 
 ## Customization & Branding
+
 - Logo/name: `components/Header.tsx`, `app/page.tsx`.
 - Colors: `tailwind.config.ts`.
 - Languages: `app/settings/page.tsx` // Insert supported languages
