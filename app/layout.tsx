@@ -34,14 +34,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {!isLogin && (
-          <link
-            rel="preload"
-            as="fetch"
-            href="/api/session/context"
-            crossOrigin="anonymous"
-          />
-        )}
+        {/** Removed speculative preload to avoid console warnings on pages that don't immediately use it */}
       </head>
   <body className="min-h-screen bg-gray-50 text-gray-900 flex flex-col">
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-white px-3 py-2 rounded border shadow">Skip to content</a>
