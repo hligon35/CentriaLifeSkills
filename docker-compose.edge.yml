@@ -7,7 +7,9 @@ services:
       - default
       - flashpost_default
     environment:
-      - DATABASE_URL=file:./prisma/dev.db
+      - DATABASE_URL=file:/app/prisma/dev.db
+    volumes:
+      - ./prisma:/app/prisma:rw
       - JWT_SECRET=dev_secret
       - S3_ENDPOINT=http://minio:9000
       - S3_REGION=us-east-1

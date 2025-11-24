@@ -9,13 +9,15 @@ services:
     ports:
       - "3005:3000"
     environment:
-      - DATABASE_URL=postgresql://flashpost_user:flashpost_password@flashpost-postgres-1:5432/flashpost_dev?schema=public
+      - DATABASE_URL=file:/app/prisma/dev.db
       - JWT_SECRET=dev_secret
       - S3_ENDPOINT=http://minio:9000
       - S3_REGION=us-east-1
       - S3_BUCKET=school-app-media
       - S3_ACCESS_KEY_ID=minioadmin
       - S3_SECRET_ACCESS_KEY=minioadmin
+    volumes:
+      - ./prisma:/app/prisma:rw
     depends_on:
       - minio
 
@@ -43,6 +45,29 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+
+  flashpost:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: flashpost:local
+    container_name: flashpost-web
+    hostname: flashpost-web
+    networks:
+      - default
+      - flashpost_default
+    expose:
+      - "3000"
+    environment:
+      - DATABASE_URL=file:./dev.db
+      - JWT_SECRET=dev_secret
+      - S3_ENDPOINT=http://minio:9000
+      - S3_REGION=us-east-1
+      - S3_BUCKET=school-app-media
+      - S3_ACCESS_KEY_ID=minioadmin
+      - S3_SECRET_ACCESS_KEY=minioadmin
+    depends_on:
+      - minio
 
 volumes:
   minio_data: {}

@@ -9,3 +9,14 @@ buddyboard.getsparqd.com {
 		Referrer-Policy "strict-origin-when-cross-origin"
 	}
 }
+
+flashpost.getsparqd.com {
+    encode zstd gzip
+    # Forward to the flashpost container we added in docker-compose
+    reverse_proxy flashpost-web:3000
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}
